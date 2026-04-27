@@ -19,6 +19,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [toastKey, setToastKey] = useState(0);
+  const [toasts, setToasts] = useState<{id: number, message: string}[]>([]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -36,6 +37,13 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
       return [...prev, { ...item, quantity: 1 }];
     });
     
+    // Add toast
+    const newToastId = Date.now();
+    setToasts(prev => [...prev, { id: newToastId, message: `${item.name} added to cart` }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== newToastId));
+    }, 3000);
+
     if (window.innerWidth > 768) {
       setIsCartOpen(true);
     } else {
@@ -73,6 +81,16 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
     <div className={styles.appContainer}>
       <Header cartCount={totalItemsInCart} onOpenCart={() => setIsCartOpen(true)} />
       
+      {/* Toast Notification Container */}
+      <div className={styles.toastContainer}>
+        {toasts.map(t => (
+          <div key={t.id} className={styles.toast}>
+            <span className={styles.toastIcon}>✅</span>
+            <span className={styles.toastMessage}>{t.message}</span>
+          </div>
+        ))}
+      </div>
+
       {/* Mobile Cart Bouncing Banner */}
       {cart.length > 0 && (
         <div key={toastKey} className={styles.mobileCartBanner} onClick={() => setIsCartOpen(true)}>
