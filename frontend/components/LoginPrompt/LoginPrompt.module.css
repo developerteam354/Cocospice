@@ -120,8 +120,13 @@
 
 /* Animations */
 @keyframes promptOverlayIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes promptSlideUp {
@@ -129,6 +134,7 @@
     opacity: 0;
     transform: translateY(20px) scale(0.96);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -136,8 +142,15 @@
 }
 
 @keyframes lockPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.15); }
-  50% { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.15);
+  }
+
+  50% {
+    box-shadow: 0 0 0 12px rgba(16, 185, 129, 0);
+  }
 }
 
 /* Mobile */

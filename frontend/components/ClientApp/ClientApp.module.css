@@ -2,59 +2,203 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: transparent;
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.45); /* Glassy white overlay over the whole app */
+  backdrop-filter: blur(12px); /* Blur the body background */
 }
 
 .mainLayout {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   flex: 1;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
 }
 
+.sidebarWrapper {
+  display: flex;
+  flex-direction: column;
+  transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.4s ease;
+  width: 280px;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(24px);
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+  height: calc(100vh - 65px);
+  position: sticky;
+  top: 65px;
+  overflow: hidden;
+  box-shadow: 1px 0 20px rgba(0,0,0,0.03);
+}
+
+.sidebarClosed {
+  width: 0;
+  opacity: 0;
+  border-right: none;
+}
+
+.sidebarHeader {
+  padding: 24px 24px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebarTitle {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.sidebarBadge {
+  background: var(--primary-color);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  box-shadow: 0 2px 5px rgba(16, 185, 129, 0.3);
+}
+
 .categoryScrollContainer {
   display: flex;
-  overflow-x: auto;
-  gap: 12px;
-  padding: 16px 24px;
-  background: var(--surface-color);
-  border-bottom: 1px solid var(--border-color);
-  position: sticky;
-  top: 65px; /* Below header */
-  z-index: 90;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 24px 24px;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.15) transparent;
 }
 
 .categoryScrollContainer::-webkit-scrollbar {
-  display: none; /* Safari and Chrome */
+  width: 4px;
+}
+.categoryScrollContainer::-webkit-scrollbar-track {
+  background: transparent;
+}
+.categoryScrollContainer::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+.contentWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: relative;
+}
+
+.contentHeader {
+  display: flex;
+  align-items: center;
+  padding: 16px 24px 0;
+  position: sticky;
+  top: 65px;
+  z-index: 10;
+}
+
+.sidebarToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.sidebarToggle:hover {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25);
+}
+
+.toggleClosed {
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .categoryPill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   white-space: nowrap;
-  padding: 8px 20px;
-  border-radius: 24px;
-  background: var(--surface-hover);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   font-size: 0.95rem;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  position: relative;
+  overflow: hidden;
+}
+
+.categoryIcon {
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.categoryText {
+  flex: 1;
+  text-align: left;
 }
 
 .categoryPill:hover {
-  background: var(--border-color);
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-primary);
+  transform: translateX(4px);
+}
+
+.categoryPill:hover .categoryIcon {
+  background: rgba(0, 0, 0, 0.08);
+  transform: scale(1.1);
 }
 
 .activePill {
-  background: var(--primary-color) !important;
-  color: #fff !important;
-  border-color: var(--primary-color) !important;
-  box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05)) !important;
+  color: var(--primary-color) !important;
+  border-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+.activePill .categoryIcon {
+  background: var(--primary-color);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+}
+
+.activeIndicator {
+  position: absolute;
+  right: 12px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  box-shadow: 0 0 8px var(--primary-color);
 }
 
 .mobileCartBanner {
@@ -62,9 +206,66 @@
 }
 
 @media (max-width: 768px) {
+  .mainLayout {
+    flex-direction: column;
+  }
+  
+  .sidebarWrapper {
+    width: 100%;
+    border-right: none;
+    height: auto;
+    position: static;
+  }
+
+  .sidebarClosed {
+    width: 100%;
+    opacity: 1;
+  }
+  
+  .sidebarHeader {
+    display: none;
+  }
+  
+  .contentWrapper {
+    width: 100%;
+  }
+
   .categoryScrollContainer {
+    flex-direction: row;
+    height: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
     padding: 12px 16px;
+    gap: 12px;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
     top: 60px; /* Adjust for mobile header height */
+    z-index: 90;
+  }
+
+  .sidebarToggle, .contentHeader {
+    display: none;
+  }
+  
+  .categoryPill {
+    padding: 8px 20px;
+    border-radius: 24px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-hover);
+    color: var(--text-primary);
+  }
+  
+  .categoryPill:hover {
+    transform: none;
+  }
+  
+  .categoryIcon, .activeIndicator {
+    display: none;
+  }
+  
+  .activePill {
+    background: var(--primary-color) !important;
+    color: #fff !important;
   }
 
   .mobileCartBanner {

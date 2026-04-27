@@ -9,6 +9,7 @@ import CartSidebar from '../CartSidebar/CartSidebar';
 import SplashScreen from '../SplashScreen/SplashScreen';
 import AuthModal from '../AuthModal/AuthModal';
 import LoginPrompt from '../LoginPrompt/LoginPrompt';
+import CheckoutPage from '../CheckoutPage/CheckoutPage';
 import styles from './ClientApp.module.css';
 
 interface ClientAppProps {
@@ -29,6 +30,9 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
+
+  // Checkout page
+  const [showCheckout, setShowCheckout] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -77,8 +81,8 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
       setShowLoginPrompt(true);
       return;
     }
-    // TODO: Proceed to actual checkout flow
-    alert(`Proceeding to checkout for ${user.name}!`);
+    setIsCartOpen(false);
+    setShowCheckout(true);
   };
 
   // Login prompt → open auth modal
@@ -99,6 +103,8 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
     setAuthModalMode(mode);
     setShowAuthModal(true);
   };
+
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   if (showSplash) {
     return <SplashScreen />;
@@ -147,31 +153,70 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
       )}
 
       <main className={styles.mainLayout}>
-        <div className={styles.categoryScrollContainer}>
-          <button 
-            className={`${styles.categoryPill} ${selectedCategoryId === null ? styles.activePill : ''}`}
-            onClick={() => setSelectedCategoryId(null)}
-          >
-            All Categories
-          </button>
-          {categories.map(c => (
+        <div className={`${styles.sidebarWrapper} ${isSidebarOpen ? '' : styles.sidebarClosed}`}>
+          <div className={styles.sidebarHeader}>
+            <h3 className={styles.sidebarTitle}>Menu</h3>
+            <div className={styles.sidebarBadge}>{categories.length + 1}</div>
+          </div>
+          <div className={styles.categoryScrollContainer}>
             <button 
-              key={c.id}
-              className={`${styles.categoryPill} ${selectedCategoryId === c.id ? styles.activePill : ''}`}
-              onClick={() => setSelectedCategoryId(c.id)}
+              className={`${styles.categoryPill} ${selectedCategoryId === null ? styles.activePill : ''}`}
+              onClick={() => setSelectedCategoryId(null)}
             >
-              {c.name}
+              <span className={styles.categoryIcon}>🍽️</span>
+              <span className={styles.categoryText}>All Categories</span>
+              {selectedCategoryId === null && <span className={styles.activeIndicator} />}
             </button>
-          ))}
+            {categories.map((c, i) => {
+              const icons = ['🍛', '🥘', '🍗', '🥬', '🍚', '🥖', '🍨', '🍹'];
+              const icon = icons[i % icons.length];
+              return (
+                <button 
+                  key={c.id}
+                  className={`${styles.categoryPill} ${selectedCategoryId === c.id ? styles.activePill : ''}`}
+                  onClick={() => setSelectedCategoryId(c.id)}
+                >
+                  <span className={styles.categoryIcon}>{icon}</span>
+                  <span className={styles.categoryText}>{c.name}</span>
+                  {selectedCategoryId === c.id && <span className={styles.activeIndicator} />}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        <MainContent 
-          categoryTitle={selectedCategoryName}
-          items={filteredItems} 
-          categories={selectedCategoryId === null ? categories : undefined}
-          onSelectCategory={(id) => setSelectedCategoryId(id)}
-          onAddToCart={handleAddToCart} 
-        />
+        <div className={styles.contentWrapper}>
+          <div className={styles.contentHeader}>
+            <button 
+              className={`${styles.sidebarToggle} ${!isSidebarOpen ? styles.toggleClosed : ''}`}
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              aria-label="Toggle Categories"
+              title="Toggle Sidebar"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                {isSidebarOpen ? (
+                  <>
+                    <path d="M9 18l-6-6 6-6" />
+                    <path d="M21 12H3" />
+                  </>
+                ) : (
+                  <>
+                    <path d="M15 18l6-6-6-6" />
+                    <path d="M3 12h18" />
+                  </>
+                )}
+              </svg>
+            </button>
+          </div>
+          
+          <MainContent 
+            categoryTitle={selectedCategoryName}
+            items={filteredItems} 
+            categories={selectedCategoryId === null ? categories : undefined}
+            onSelectCategory={(id) => setSelectedCategoryId(id)}
+            onAddToCart={handleAddToCart} 
+          />
+        </div>
       </main>
 
       {isCartOpen && (
@@ -198,6 +243,19 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
         <AuthModal
           initialMode={authModalMode}
           onClose={() => setShowAuthModal(false)}
+        />
+      )}
+
+      {/* Checkout Page */}
+      {showCheckout && user && (
+        <CheckoutPage
+          cart={cart}
+          userName={user.name}
+          onClose={() => setShowCheckout(false)}
+          onOrderPlaced={() => {
+            setCart([]);
+            setShowCheckout(false);
+          }}
         />
       )}
     </div>

@@ -21,6 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Restore session on mount
   useEffect(() => {
     const stored = getCurrentUser();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUser(stored);
     setIsLoading(false);
   }, []);
