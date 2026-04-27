@@ -154,12 +154,34 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
       {/* Mobile Cart Bouncing Banner */}
       {cart.length > 0 && (
         <div key={toastKey} className={styles.mobileCartBanner} onClick={() => setIsCartOpen(true)}>
-          <div className={styles.mobileCartInfo}>
-            <span className={styles.mobileCartToastText}>⚡ Fast Delivery!</span>
-            <span className={styles.mobileCartTotal}>{totalItemsInCart} items • £{cartTotal.toFixed(2)}</span>
+          {/* Item Thumbnails */}
+          <div className={styles.mobileCartThumbsWrap}>
+            {cart.slice(0, 3).map((item, i) => (
+              <Image
+                key={item.id}
+                src={item.image}
+                alt={item.name}
+                width={36}
+                height={36}
+                className={styles.mobileCartThumb}
+                style={{ zIndex: 3 - i, marginLeft: i === 0 ? 0 : -10 }}
+              />
+            ))}
+            {cart.length > 3 && (
+              <div className={styles.mobileCartThumbMore}>+{cart.length - 3}</div>
+            )}
           </div>
+
+          {/* Item count + total */}
+          <div className={styles.mobileCartInfo}>
+            <span className={styles.mobileCartCount}>{totalItemsInCart} item{totalItemsInCart > 1 ? 's' : ''}</span>
+            <span className={styles.mobileCartTotal}>£{cartTotal.toFixed(2)}</span>
+          </div>
+
+          {/* Order Now CTA */}
           <button className={styles.mobileCheckoutBtn}>
             Order Now
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
         </div>
       )}
