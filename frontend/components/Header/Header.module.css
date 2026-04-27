@@ -25,7 +25,7 @@
   display: inline-flex;
   gap: 20px;
   align-items: center;
-  animation: marquee 15s linear infinite;
+  animation: marquee 25s linear infinite;
 }
 
 @keyframes marquee {
@@ -41,10 +41,19 @@
 .statusOpen {
   background: #ffffff;
   color: var(--primary-color);
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-weight: bold;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  padding: 4px 16px;
+  border-radius: 20px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+  border: 2px solid #ffffff;
+  animation: pulseBanner 2s infinite alternate;
+}
+
+@keyframes pulseBanner {
+  0% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
+  100% { transform: scale(1.05); box-shadow: 0 0 20px rgba(255, 255, 255, 0.6); }
 }
 
 .mainHeader {

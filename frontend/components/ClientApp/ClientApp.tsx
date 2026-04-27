@@ -12,6 +12,7 @@ import AuthModal from '../AuthModal/AuthModal';
 import LoginPrompt from '../LoginPrompt/LoginPrompt';
 import CheckoutPage from '../CheckoutPage/CheckoutPage';
 import ItemDetailModal from '../ItemDetailModal/ItemDetailModal';
+import OrderTypeModal from '../OrderTypeModal/OrderTypeModal';
 import styles from './ClientApp.module.css';
 
 interface ClientAppProps {
@@ -36,6 +37,8 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
 
   // Checkout page
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showOrderTypeModal, setShowOrderTypeModal] = useState(false);
+  const [orderType, setOrderType] = useState<'delivery' | 'collection'>('delivery');
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -85,6 +88,12 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
       return;
     }
     setIsCartOpen(false);
+    setShowOrderTypeModal(true);
+  };
+
+  const handleOrderTypeSelected = (type: 'delivery' | 'collection') => {
+    setOrderType(type);
+    setShowOrderTypeModal(false);
     setShowCheckout(true);
   };
 
@@ -158,8 +167,8 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
       <main className={styles.mainLayout}>
         <div className={`${styles.sidebarWrapper} ${isSidebarOpen ? '' : styles.sidebarClosed}`}>
           <div className={styles.sidebarHeader}>
-            <h3 className={styles.sidebarTitle} style={{ color: '#7c2f00' }}>Menu</h3>
-            <div className={styles.sidebarBadge}>{categories.length + 1}</div>
+            <h3 className={styles.sidebarTitle} style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>Menu</h3>
+            <div className={styles.sidebarBadge} style={{ background: '#ffffff', color: 'var(--primary-color)' }}>{categories.length + 1}</div>
           </div>
           <div className={styles.categoryScrollContainer}>
             <button
@@ -167,8 +176,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
               onClick={() => setSelectedCategoryId(null)}
             >
               <span className={styles.categoryIcon}>🍽️</span>
-              <span className={`${styles.categoryText} text-black`}>All Categories</span>
-              {selectedCategoryId === null && <span className={styles.activeIndicator} />}
+              <span className={styles.categoryText}>All Categories</span>
             </button>
             {categories.map((c, index) => {
               const catImage = menuItems.find(item => item.categoryId === c.id)?.image || '/images/default.png';
@@ -180,8 +188,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
                   <Image src={catImage} alt={c.name} width={36} height={36} className={styles.categoryImg} />
-                  <span className={`${styles.categoryText} text-black`}>{c.name}</span>
-                  {selectedCategoryId === c.id && <span className={styles.activeIndicator} />}
+                  <span className={styles.categoryText}>{c.name}</span>
                 </button>
               );
             })}
@@ -224,10 +231,10 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
       </main>
 
       {selectedItem && (
-        <ItemDetailModal 
-          item={selectedItem} 
-          onClose={() => setSelectedItem(null)} 
-          onAddToCart={handleAddToCart} 
+        <ItemDetailModal
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+          onAddToCart={handleAddToCart}
         />
       )}
 
@@ -268,6 +275,14 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
             setCart([]);
             setShowCheckout(false);
           }}
+          orderType={orderType}
+        />
+      )}
+
+      {showOrderTypeModal && (
+        <OrderTypeModal 
+          onSelectType={handleOrderTypeSelected}
+          onClose={() => setShowOrderTypeModal(false)}
         />
       )}
     </div>

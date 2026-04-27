@@ -44,7 +44,7 @@ export default function Header({ cartCount, onOpenCart, onOpenAuth }: HeaderProp
         <div className={styles.info}>
           <span>📍 370 High Street, Lincoln LN5 7RU</span>
           <span>📞 01522 534 202</span>
-          <span className={styles.statusOpen}>Open</span>
+          <span className={styles.statusOpen}>We are now open</span>
         </div>
       </div>
       <div className={styles.mainHeader}>
