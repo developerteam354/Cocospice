@@ -11,6 +11,7 @@ import SplashScreen from '../SplashScreen/SplashScreen';
 import AuthModal from '../AuthModal/AuthModal';
 import LoginPrompt from '../LoginPrompt/LoginPrompt';
 import CheckoutPage from '../CheckoutPage/CheckoutPage';
+import ItemDetailModal from '../ItemDetailModal/ItemDetailModal';
 import styles from './ClientApp.module.css';
 
 interface ClientAppProps {
@@ -22,6 +23,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
   const { user } = useAuth();
   const [showSplash, setShowSplash] = useState(true);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [toastKey, setToastKey] = useState(0);
@@ -168,13 +170,14 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
               <span className={`${styles.categoryText} text-black`}>All Categories</span>
               {selectedCategoryId === null && <span className={styles.activeIndicator} />}
             </button>
-            {categories.map((c) => {
+            {categories.map((c, index) => {
               const catImage = menuItems.find(item => item.categoryId === c.id)?.image || '/images/default.png';
               return (
                 <button
                   key={c.id}
                   className={`${styles.categoryPill} ${selectedCategoryId === c.id ? styles.activePill : ''}`}
                   onClick={() => setSelectedCategoryId(c.id)}
+                  style={{ animationDelay: `${index * 0.05}s` }}
                 >
                   <Image src={catImage} alt={c.name} width={36} height={36} className={styles.categoryImg} />
                   <span className={`${styles.categoryText} text-black`}>{c.name}</span>
@@ -215,9 +218,18 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
             categories={selectedCategoryId === null ? categories : undefined}
             onSelectCategory={(id) => setSelectedCategoryId(id)}
             onAddToCart={handleAddToCart}
+            onSelectItem={setSelectedItem}
           />
         </div>
       </main>
+
+      {selectedItem && (
+        <ItemDetailModal 
+          item={selectedItem} 
+          onClose={() => setSelectedItem(null)} 
+          onAddToCart={handleAddToCart} 
+        />
+      )}
 
       {isCartOpen && (
         <CartSidebar

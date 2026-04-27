@@ -149,6 +149,23 @@
   font-size: 0.95rem;
   position: relative;
   overflow: hidden;
+  animation: pillFadeIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+.categoryPill:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
+@keyframes pillFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .categoryIcon {
