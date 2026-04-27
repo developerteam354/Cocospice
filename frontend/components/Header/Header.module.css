@@ -29,8 +29,13 @@
 }
 
 @keyframes marquee {
-  0% { transform: translateX(100vw); }
-  100% { transform: translateX(-100%); }
+  0% {
+    transform: translateX(100vw);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
 }
 
 .statusOpen {
@@ -63,7 +68,7 @@
   margin: 0;
   color: var(--primary-color);
   line-height: 1;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: "Baskerville", "Baskerville Old Face", "Hoefler Text", "Garamond", "Times New Roman", serif;
   letter-spacing: -1px;
 }
 
@@ -105,11 +110,13 @@
   transition: width 0.3s ease;
 }
 
-.nav a:hover::after, .nav a.active::after {
+.nav a:hover::after,
+.nav a.active::after {
   width: 70%;
 }
 
-.nav a:hover, .nav a.active {
+.nav a:hover,
+.nav a.active {
   color: var(--primary-color);
   background: rgba(0, 86, 82, 0.05);
 }
@@ -319,6 +326,7 @@
     opacity: 0;
     transform: translateY(-8px) scale(0.96);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -329,23 +337,28 @@
   .topBar {
     justify-content: center;
   }
+
   .mainHeader {
     flex-direction: column;
     gap: 16px;
     padding: 16px;
   }
+
   .nav {
     flex-wrap: wrap;
     justify-content: center;
     gap: 16px;
   }
+
   .cartButton {
     padding: 8px 16px;
   }
+
   .loginButton {
     padding: 8px 14px;
     font-size: 0.85rem;
   }
+
   .userDropdown {
     right: -20px;
     width: 240px;

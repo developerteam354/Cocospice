@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Category, MenuItem, CartItem } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import Header from '../Header/Header';
@@ -24,7 +25,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [toastKey, setToastKey] = useState(0);
-  const [toasts, setToasts] = useState<{id: number, message: string}[]>([]);
+  const [toasts, setToasts] = useState<{ id: number, message: string }[]>([]);
 
   // Auth modal state
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
@@ -49,7 +50,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
       }
       return [...prev, { ...item, quantity: 1 }];
     });
-    
+
     // Add toast
     const newToastId = Date.now();
     setToasts(prev => [...prev, { id: newToastId, message: `${item.name} added to cart` }]);
@@ -113,12 +114,12 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
   const totalItemsInCart = cart.reduce((sum, item) => sum + item.quantity, 0);
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const filteredItems = selectedCategoryId === null 
-    ? menuItems 
+  const filteredItems = selectedCategoryId === null
+    ? menuItems
     : menuItems.filter(item => item.categoryId === selectedCategoryId);
 
-  const selectedCategoryName = selectedCategoryId === null 
-    ? 'All Categories' 
+  const selectedCategoryName = selectedCategoryId === null
+    ? 'All Categories'
     : categories.find(c => c.id === selectedCategoryId)?.name || 'Menu';
 
   return (
@@ -128,7 +129,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
         onOpenCart={() => setIsCartOpen(true)}
         onOpenAuth={handleOpenAuth}
       />
-      
+
       {/* Toast Notification Container */}
       <div className={styles.toastContainer}>
         {toasts.map(t => (
@@ -142,13 +143,13 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
       {/* Mobile Cart Bouncing Banner */}
       {cart.length > 0 && (
         <div key={toastKey} className={styles.mobileCartBanner} onClick={() => setIsCartOpen(true)}>
-           <div className={styles.mobileCartInfo}>
-             <span className={styles.mobileCartToastText}>⚡ Fast Delivery!</span>
-             <span className={styles.mobileCartTotal}>{totalItemsInCart} items • £{cartTotal.toFixed(2)}</span>
-           </div>
-           <button className={styles.mobileCheckoutBtn}>
-             Order Now
-           </button>
+          <div className={styles.mobileCartInfo}>
+            <span className={styles.mobileCartToastText}>⚡ Fast Delivery!</span>
+            <span className={styles.mobileCartTotal}>{totalItemsInCart} items • £{cartTotal.toFixed(2)}</span>
+          </div>
+          <button className={styles.mobileCheckoutBtn}>
+            Order Now
+          </button>
         </div>
       )}
 
@@ -159,7 +160,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
             <div className={styles.sidebarBadge}>{categories.length + 1}</div>
           </div>
           <div className={styles.categoryScrollContainer}>
-            <button 
+            <button
               className={`${styles.categoryPill} ${selectedCategoryId === null ? styles.activePill : ''}`}
               onClick={() => setSelectedCategoryId(null)}
             >
@@ -167,16 +168,15 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
               <span className={`${styles.categoryText} text-black`}>All Categories</span>
               {selectedCategoryId === null && <span className={styles.activeIndicator} />}
             </button>
-            {categories.map((c, i) => {
-              const icons = ['🍛', '🥘', '🍗', '🥬', '🍚', '🥖', '🍨', '🍹'];
-              const icon = icons[i % icons.length];
+            {categories.map((c) => {
+              const catImage = menuItems.find(item => item.categoryId === c.id)?.image || '/images/default.png';
               return (
-                <button 
+                <button
                   key={c.id}
                   className={`${styles.categoryPill} ${selectedCategoryId === c.id ? styles.activePill : ''}`}
                   onClick={() => setSelectedCategoryId(c.id)}
                 >
-                  <span className={styles.categoryIcon}>{icon}</span>
+                  <Image src={catImage} alt={c.name} width={36} height={36} className={styles.categoryImg} />
                   <span className={`${styles.categoryText} text-black`}>{c.name}</span>
                   {selectedCategoryId === c.id && <span className={styles.activeIndicator} />}
                 </button>
@@ -187,7 +187,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
 
         <div className={styles.contentWrapper}>
           <div className={styles.contentHeader}>
-            <button 
+            <button
               className={`${styles.sidebarToggle} ${!isSidebarOpen ? styles.toggleClosed : ''}`}
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               aria-label="Toggle Categories"
@@ -208,21 +208,21 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
               </svg>
             </button>
           </div>
-          
-          <MainContent 
+
+          <MainContent
             categoryTitle={selectedCategoryName}
-            items={filteredItems} 
+            items={filteredItems}
             categories={selectedCategoryId === null ? categories : undefined}
             onSelectCategory={(id) => setSelectedCategoryId(id)}
-            onAddToCart={handleAddToCart} 
+            onAddToCart={handleAddToCart}
           />
         </div>
       </main>
 
       {isCartOpen && (
-        <CartSidebar 
-          cart={cart} 
-          onUpdateQuantity={handleUpdateQuantity} 
+        <CartSidebar
+          cart={cart}
+          onUpdateQuantity={handleUpdateQuantity}
           onClearCart={() => setCart([])}
           onClose={() => setIsCartOpen(false)}
           onCheckout={handleCheckout}

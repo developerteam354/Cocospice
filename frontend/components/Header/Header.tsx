@@ -84,15 +84,15 @@ export default function Header({ cartCount, onOpenCart, onOpenAuth }: HeaderProp
                   <div className={styles.dropdownDivider} />
                   <button className={styles.dropdownItem} onClick={() => { setShowUserMenu(false); }}>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <circle cx="8" cy="4.5" r="2.5" stroke="currentColor" strokeWidth="1.5"/>
-                      <path d="M2.5 13c0-2.5 2.2-4 5.5-4s5.5 1.5 5.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                      <circle cx="8" cy="4.5" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+                      <path d="M2.5 13c0-2.5 2.2-4 5.5-4s5.5 1.5 5.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
                     My Profile
                   </button>
                   <button className={styles.dropdownItem} onClick={() => { setShowUserMenu(false); }}>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
-                      <path d="M2 6h12" stroke="currentColor" strokeWidth="1.5"/>
+                      <rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+                      <path d="M2 6h12" stroke="currentColor" strokeWidth="1.5" />
                     </svg>
                     My Orders
                   </button>
@@ -102,7 +102,7 @@ export default function Header({ cartCount, onOpenCart, onOpenAuth }: HeaderProp
                     onClick={() => { logout(); setShowUserMenu(false); }}
                   >
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <path d="M6 2H4a2 2 0 00-2 2v8a2 2 0 002 2h2M10.5 11.5L14 8l-3.5-3.5M14 8H6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M6 2H4a2 2 0 00-2 2v8a2 2 0 002 2h2M10.5 11.5L14 8l-3.5-3.5M14 8H6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                     Sign Out
                   </button>
@@ -112,8 +112,8 @@ export default function Header({ cartCount, onOpenCart, onOpenAuth }: HeaderProp
           ) : (
             <button className={styles.loginButton} onClick={() => onOpenAuth('login')}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <circle cx="8" cy="4.5" r="2.5" stroke="currentColor" strokeWidth="1.5"/>
-                <path d="M2.5 13c0-2.5 2.2-4 5.5-4s5.5 1.5 5.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                <circle cx="8" cy="4.5" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M2.5 13c0-2.5 2.2-4 5.5-4s5.5 1.5 5.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
               Sign In
             </button>

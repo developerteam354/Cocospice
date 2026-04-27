@@ -24,7 +24,7 @@
   margin: 0;
   letter-spacing: -2px;
   filter: drop-shadow(0 0 20px rgba(16, 185, 129, 0.2));
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: "Baskerville", "Baskerville Old Face", "Hoefler Text", "Garamond", "Times New Roman", serif;
 }
 
 .slogan {
@@ -37,12 +37,89 @@
   animation: fadeIn 1s ease-in-out 0.8s forwards;
 }
 
-.loaderWrapper {
-  margin-bottom: 24px;
-  display: flex;
-  justify-content: center;
+.foodLoader {
+  position: relative;
+  width: 80px;
+  height: 70px;
+  margin: 0 auto 24px auto;
   opacity: 0;
   animation: fadeIn 0.5s ease-in-out 0.5s forwards;
+}
+
+.clocheWrapper {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  width: 60px;
+  height: 40px;
+  animation: liftCloche 2.5s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-origin: bottom right;
+  z-index: 3;
+}
+
+.clocheHandle {
+  width: 12px;
+  height: 8px;
+  background: var(--primary-color);
+  border-radius: 6px;
+  margin: 0 auto;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.clocheDome {
+  width: 60px;
+  height: 32px;
+  background: var(--primary-color);
+  border-radius: 30px 30px 0 0;
+}
+
+.plate {
+  position: absolute;
+  bottom: 5px;
+  left: 0;
+  width: 80px;
+  height: 6px;
+  background: var(--primary-color);
+  border-radius: 3px;
+  z-index: 4;
+}
+
+.food {
+  position: absolute;
+  bottom: 10px;
+  left: 25px;
+  width: 30px;
+  height: 18px;
+  background: #f59e0b;
+  border-radius: 15px 15px 0 0;
+  z-index: 1;
+}
+
+.steam {
+  position: absolute;
+  width: 4px;
+  background: #f59e0b;
+  border-radius: 2px;
+  bottom: 30px;
+  z-index: 2;
+  opacity: 0;
+}
+
+.steam1 { left: 32px; height: 12px; animation: steamRise 2.5s infinite cubic-bezier(0.4, 0, 0.2, 1) 0.1s; }
+.steam2 { left: 40px; height: 16px; animation: steamRise 2.5s infinite cubic-bezier(0.4, 0, 0.2, 1) 0.3s; }
+.steam3 { left: 48px; height: 10px; animation: steamRise 2.5s infinite cubic-bezier(0.4, 0, 0.2, 1) 0.5s; }
+
+@keyframes liftCloche {
+  0%, 15%, 85%, 100% { transform: translateY(0) rotate(0); }
+  40%, 60% { transform: translateY(-30px) rotate(15deg); }
+}
+
+@keyframes steamRise {
+  0%, 35% { transform: translateY(0) scale(0.5); opacity: 0; }
+  50% { opacity: 0.6; }
+  65% { transform: translateY(-20px) scale(1); opacity: 0; }
+  100% { transform: translateY(-20px); opacity: 0; }
 }
 
 @keyframes scaleUp {

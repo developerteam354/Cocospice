@@ -28,7 +28,7 @@
   position: sticky;
   top: 65px;
   overflow: hidden;
-  box-shadow: 1px 0 20px rgba(0,0,0,0.03);
+  box-shadow: 1px 0 20px rgba(0, 0, 0, 0.03);
 }
 
 .sidebarClosed {
@@ -72,15 +72,17 @@
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: rgba(0,0,0,0.15) transparent;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 }
 
 .categoryScrollContainer::-webkit-scrollbar {
   width: 4px;
 }
+
 .categoryScrollContainer::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .categoryScrollContainer::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.15);
   border-radius: 4px;
@@ -116,7 +118,7 @@
   cursor: pointer;
   color: var(--text-primary);
   transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .sidebarToggle:hover {
@@ -157,8 +159,18 @@
   width: 36px;
   height: 36px;
   background: rgba(0, 0, 0, 0.04);
-  border-radius: 10px;
+  border-radius: 50%;
   transition: all 0.3s ease;
+}
+
+.categoryImg {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
 .categoryText {
@@ -172,7 +184,8 @@
   transform: translateX(4px);
 }
 
-.categoryPill:hover .categoryIcon {
+.categoryPill:hover .categoryIcon,
+.categoryPill:hover .categoryImg {
   background: rgba(0, 0, 0, 0.08);
   transform: scale(1.1);
 }
@@ -183,10 +196,15 @@
   border-color: rgba(16, 185, 129, 0.2) !important;
 }
 
-.activePill .categoryIcon {
+.activePill .categoryIcon,
+.activePill .categoryImg {
   background: var(--primary-color);
   color: #fff;
   box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+}
+
+.activePill .categoryImg {
+  border: 2px solid var(--primary-color);
 }
 
 .activeIndicator {
@@ -207,7 +225,7 @@
   .mainLayout {
     flex-direction: column;
   }
-  
+
   .sidebarWrapper {
     width: 100%;
     border-right: none;
@@ -219,11 +237,11 @@
     width: 100%;
     opacity: 1;
   }
-  
+
   .sidebarHeader {
     display: none;
   }
-  
+
   .contentWrapper {
     width: 100%;
   }
@@ -238,24 +256,28 @@
     gap: 12px;
     border-bottom: 1px solid var(--border-color);
     position: sticky;
-    top: 60px; /* Adjust for mobile header height */
+    top: 60px;
+    /* Adjust for mobile header height */
     z-index: 90;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
-    scrollbar-width: none; /* Hide for Firefox */
+    scrollbar-width: none;
+    /* Hide for Firefox */
     scroll-snap-type: x mandatory;
     width: 100%;
     background: var(--surface-color);
   }
 
   .categoryScrollContainer::-webkit-scrollbar {
-    display: none; /* Hide for Chrome/Safari/Edge */
+    display: none;
+    /* Hide for Chrome/Safari/Edge */
   }
 
-  .sidebarToggle, .contentHeader {
+  .sidebarToggle,
+  .contentHeader {
     display: none;
   }
-  
+
   .categoryPill {
     padding: 8px 20px;
     border-radius: 24px;
@@ -265,15 +287,16 @@
     flex-shrink: 0;
     scroll-snap-align: start;
   }
-  
+
   .categoryPill:hover {
     transform: none;
   }
-  
-  .categoryIcon, .activeIndicator {
+
+  .categoryIcon,
+  .activeIndicator {
     display: none;
   }
-  
+
   .activePill {
     background: var(--primary-color) !important;
     color: #fff !important;
@@ -284,7 +307,8 @@
     justify-content: space-between;
     align-items: center;
     position: fixed;
-    bottom: 20px; /* Positioned at bottom */
+    bottom: 20px;
+    /* Positioned at bottom */
     top: auto;
     left: 5%;
     width: 90%;
@@ -297,7 +321,7 @@
     animation: slideAndBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards, pulseGlow 2s infinite alternate 1s;
     cursor: pointer;
   }
-  
+
   .mobileCartInfo {
     display: flex;
     flex-direction: column;
@@ -328,35 +352,72 @@
     font-weight: 900;
     font-size: 0.95rem;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
     pointer-events: none;
     animation: racingShake 3s infinite;
   }
 }
 
 @keyframes slideAndBounce {
-  0% { transform: translateY(120px) scale(0.9); opacity: 0; }
-  60% { transform: translateY(-15px) scale(1.05); opacity: 1; }
-  100% { transform: translateY(0) scale(1); opacity: 1; }
+  0% {
+    transform: translateY(120px) scale(0.9);
+    opacity: 0;
+  }
+
+  60% {
+    transform: translateY(-15px) scale(1.05);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes pulseGlow {
-  0% { box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4); }
-  100% { box-shadow: 0 10px 40px rgba(16, 185, 129, 0.8), 0 0 15px rgba(255,255,255,0.2); transform: scale(1.02); }
+  0% {
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+  }
+
+  100% {
+    box-shadow: 0 10px 40px rgba(16, 185, 129, 0.8), 0 0 15px rgba(255, 255, 255, 0.2);
+    transform: scale(1.02);
+  }
 }
 
 @keyframes racingShake {
-  0%, 90% { transform: translateX(0); }
-  92% { transform: translateX(-3px) rotate(-3deg); }
-  94% { transform: translateX(3px) rotate(3deg); }
-  96% { transform: translateX(-3px) rotate(-3deg); }
-  98% { transform: translateX(3px) rotate(3deg); }
-  100% { transform: translateX(0); }
+
+  0%,
+  90% {
+    transform: translateX(0);
+  }
+
+  92% {
+    transform: translateX(-3px) rotate(-3deg);
+  }
+
+  94% {
+    transform: translateX(3px) rotate(3deg);
+  }
+
+  96% {
+    transform: translateX(-3px) rotate(-3deg);
+  }
+
+  98% {
+    transform: translateX(3px) rotate(3deg);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
 }
 
 .toastContainer {
   position: fixed;
-  top: 20px; /* Moved to top to avoid overlapping cart */
+  top: 20px;
+  /* Moved to top to avoid overlapping cart */
   right: 20px;
   display: flex;
   flex-direction: column;
@@ -370,7 +431,7 @@
   color: var(--text-primary);
   padding: 12px 20px;
   border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -385,10 +446,20 @@
 }
 
 @keyframes slideInRight {
-  from { transform: translateX(120%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 @keyframes fadeOutToast {
-  to { opacity: 0; transform: translateY(-10px); }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
 }
