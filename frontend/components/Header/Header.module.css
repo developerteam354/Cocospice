@@ -1,35 +1,45 @@
 .header {
-  background: var(--surface-color);
-  border-bottom: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 2px solid var(--primary-color);
   position: sticky;
   top: 0;
   z-index: 100;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
 }
 
 .topBar {
-  background: #005652;
-  padding: 8px 24px;
+  background: var(--primary-color);
+  padding: 10px 24px;
   display: flex;
-  justify-content: flex-end;
   font-size: 0.85rem;
   color: #ffffff;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .info {
-  display: flex;
+  display: inline-flex;
   gap: 20px;
   align-items: center;
+  animation: marquee 15s linear infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(100vw); }
+  100% { transform: translateX(-100%); }
 }
 
 .statusOpen {
-  background: #10b981; /* Green for open */
-  color: #ffffff;
-  padding: 2px 8px;
-  border-radius: 4px;
+  background: #ffffff;
+  color: var(--primary-color);
+  padding: 3px 10px;
+  border-radius: 12px;
   font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .mainHeader {
@@ -48,8 +58,8 @@
 }
 
 .logo {
-  font-size: 2.2rem;
-  font-weight: 800;
+  font-size: 2.4rem;
+  font-weight: 900;
   margin: 0;
   color: var(--primary-color);
   line-height: 1;
@@ -59,9 +69,9 @@
 
 .subtitle {
   margin: 4px 0 0 0;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
-  letter-spacing: 1px;
+  letter-spacing: 2px;
   text-transform: uppercase;
   font-weight: 600;
 }
@@ -75,33 +85,54 @@
 .nav a {
   color: var(--text-primary);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 1rem;
-  transition: color 0.2s;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.nav a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background: var(--primary-color);
+  transition: width 0.3s ease;
+}
+
+.nav a:hover::after, .nav a.active::after {
+  width: 70%;
 }
 
 .nav a:hover, .nav a.active {
   color: var(--primary-color);
+  background: rgba(0, 86, 82, 0.05);
 }
 
 .cartButton {
   background: var(--primary-color);
   color: #ffffff;
-  padding: 10px 20px;
+  padding: 10px 22px;
   border-radius: 25px;
   border: none;
-  font-weight: bold;
+  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: background 0.2s, transform 0.2s;
-  box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .cartButton:hover {
   background: var(--primary-hover);
   transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
 }
 
 .badge {
@@ -111,6 +142,7 @@
   padding: 2px 8px;
   font-size: 0.85rem;
   font-weight: 800;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Sign In Button */
@@ -118,7 +150,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 9px 18px;
+  padding: 9px 20px;
   border: 2px solid var(--primary-color);
   border-radius: 25px;
   background: transparent;
@@ -126,7 +158,24 @@
   font-weight: 700;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.25s;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.loginButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.loginButton:hover::before {
+  left: 100%;
 }
 
 .loginButton:hover {
@@ -162,13 +211,14 @@
   font-weight: 800;
   font-size: 0.85rem;
   letter-spacing: 0.5px;
-  transition: all 0.25s;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+  border: 2px solid #ffffff;
 }
 
 .avatarBtn:hover .avatarCircle {
-  transform: scale(1.08);
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+  transform: scale(1.1);
+  box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
 }
 
 /* User Dropdown */

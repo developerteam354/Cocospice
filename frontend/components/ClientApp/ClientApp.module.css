@@ -230,6 +230,7 @@
 
   .categoryScrollContainer {
     flex-direction: row;
+    flex-wrap: nowrap;
     height: auto;
     overflow-x: auto;
     overflow-y: hidden;
@@ -239,6 +240,16 @@
     position: sticky;
     top: 60px; /* Adjust for mobile header height */
     z-index: 90;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    scrollbar-width: none; /* Hide for Firefox */
+    scroll-snap-type: x mandatory;
+    width: 100%;
+    background: var(--surface-color);
+  }
+
+  .categoryScrollContainer::-webkit-scrollbar {
+    display: none; /* Hide for Chrome/Safari/Edge */
   }
 
   .sidebarToggle, .contentHeader {
@@ -251,6 +262,8 @@
     border: 1px solid var(--border-color);
     background: var(--surface-hover);
     color: var(--text-primary);
+    flex-shrink: 0;
+    scroll-snap-align: start;
   }
   
   .categoryPill:hover {
