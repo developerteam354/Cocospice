@@ -73,6 +73,24 @@
   margin-bottom: 8px;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  animation: raindrop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.productItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes raindrop {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .productImage {

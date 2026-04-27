@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Category, MenuItem, CartItem } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import Header from '../Header/Header';
@@ -10,6 +11,8 @@ import SplashScreen from '../SplashScreen/SplashScreen';
 import AuthModal from '../AuthModal/AuthModal';
 import LoginPrompt from '../LoginPrompt/LoginPrompt';
 import CheckoutPage from '../CheckoutPage/CheckoutPage';
+import ItemDetailModal from '../ItemDetailModal/ItemDetailModal';
+import OrderTypeModal from '../OrderTypeModal/OrderTypeModal';
 import styles from './ClientApp.module.css';
 
 interface ClientAppProps {
@@ -21,10 +24,11 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
   const { user } = useAuth();
   const [showSplash, setShowSplash] = useState(true);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [toastKey, setToastKey] = useState(0);
-  const [toasts, setToasts] = useState<{id: number, message: string}[]>([]);
+  const [toasts, setToasts] = useState<{ id: number, message: string }[]>([]);
 
   // Auth modal state
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
@@ -33,6 +37,8 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
 
   // Checkout page
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showOrderTypeModal, setShowOrderTypeModal] = useState(false);
+  const [orderType, setOrderType] = useState<'delivery' | 'collection'>('delivery');
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -49,7 +55,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
       }
       return [...prev, { ...item, quantity: 1 }];
     });
-    
+
     // Add toast
     const newToastId = Date.now();
     setToasts(prev => [...prev, { id: newToastId, message: `${item.name} added to cart` }]);
@@ -82,6 +88,12 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
       return;
     }
     setIsCartOpen(false);
+    setShowOrderTypeModal(true);
+  };
+
+  const handleOrderTypeSelected = (type: 'delivery' | 'collection') => {
+    setOrderType(type);
+    setShowOrderTypeModal(false);
     setShowCheckout(true);
   };
 
@@ -113,12 +125,12 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
   const totalItemsInCart = cart.reduce((sum, item) => sum + item.quantity, 0);
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const filteredItems = selectedCategoryId === null 
-    ? menuItems 
+  const filteredItems = selectedCategoryId === null
+    ? menuItems
     : menuItems.filter(item => item.categoryId === selectedCategoryId);
 
-  const selectedCategoryName = selectedCategoryId === null 
-    ? 'All Categories' 
+  const selectedCategoryName = selectedCategoryId === null
+    ? 'All Categories'
     : categories.find(c => c.id === selectedCategoryId)?.name || 'Menu';
 
   return (
@@ -128,7 +140,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
         onOpenCart={() => setIsCartOpen(true)}
         onOpenAuth={handleOpenAuth}
       />
-      
+
       {/* Toast Notification Container */}
       <div className={styles.toastContainer}>
         {toasts.map(t => (
@@ -142,43 +154,63 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
       {/* Mobile Cart Bouncing Banner */}
       {cart.length > 0 && (
         <div key={toastKey} className={styles.mobileCartBanner} onClick={() => setIsCartOpen(true)}>
-           <div className={styles.mobileCartInfo}>
-             <span className={styles.mobileCartToastText}>⚡ Fast Delivery!</span>
-             <span className={styles.mobileCartTotal}>{totalItemsInCart} items • £{cartTotal.toFixed(2)}</span>
-           </div>
-           <button className={styles.mobileCheckoutBtn}>
-             Order Now
-           </button>
+          {/* Item Thumbnails */}
+          <div className={styles.mobileCartThumbsWrap}>
+            {cart.slice(0, 3).map((item, i) => (
+              <Image
+                key={item.id}
+                src={item.image}
+                alt={item.name}
+                width={36}
+                height={36}
+                className={styles.mobileCartThumb}
+                style={{ zIndex: 3 - i, marginLeft: i === 0 ? 0 : -10 }}
+              />
+            ))}
+            {cart.length > 3 && (
+              <div className={styles.mobileCartThumbMore}>+{cart.length - 3}</div>
+            )}
+          </div>
+
+          {/* Item count + total */}
+          <div className={styles.mobileCartInfo}>
+            <span className={styles.mobileCartCount}>{totalItemsInCart} item{totalItemsInCart > 1 ? 's' : ''}</span>
+            <span className={styles.mobileCartTotal}>£{cartTotal.toFixed(2)}</span>
+          </div>
+
+          {/* Order Now CTA */}
+          <button className={styles.mobileCheckoutBtn}>
+            Order Now
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
         </div>
       )}
 
       <main className={styles.mainLayout}>
         <div className={`${styles.sidebarWrapper} ${isSidebarOpen ? '' : styles.sidebarClosed}`}>
           <div className={styles.sidebarHeader}>
-            <h3 className={styles.sidebarTitle} style={{ color: '#7c2f00' }}>Menu</h3>
-            <div className={styles.sidebarBadge}>{categories.length + 1}</div>
+            <h3 className={styles.sidebarTitle} style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>Menu</h3>
+            <div className={styles.sidebarBadge} style={{ background: '#ffffff', color: 'var(--primary-color)' }}>{categories.length + 1}</div>
           </div>
           <div className={styles.categoryScrollContainer}>
-            <button 
+            <button
               className={`${styles.categoryPill} ${selectedCategoryId === null ? styles.activePill : ''}`}
               onClick={() => setSelectedCategoryId(null)}
             >
               <span className={styles.categoryIcon}>🍽️</span>
-              <span className={`${styles.categoryText} text-black`}>All Categories</span>
-              {selectedCategoryId === null && <span className={styles.activeIndicator} />}
+              <span className={styles.categoryText}>All Categories</span>
             </button>
-            {categories.map((c, i) => {
-              const icons = ['🍛', '🥘', '🍗', '🥬', '🍚', '🥖', '🍨', '🍹'];
-              const icon = icons[i % icons.length];
+            {categories.map((c, index) => {
+              const catImage = menuItems.find(item => item.categoryId === c.id)?.image || '/images/default.png';
               return (
-                <button 
+                <button
                   key={c.id}
                   className={`${styles.categoryPill} ${selectedCategoryId === c.id ? styles.activePill : ''}`}
                   onClick={() => setSelectedCategoryId(c.id)}
+                  style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  <span className={styles.categoryIcon}>{icon}</span>
-                  <span className={`${styles.categoryText} text-black`}>{c.name}</span>
-                  {selectedCategoryId === c.id && <span className={styles.activeIndicator} />}
+                  <Image src={catImage} alt={c.name} width={36} height={36} className={styles.categoryImg} />
+                  <span className={styles.categoryText}>{c.name}</span>
                 </button>
               );
             })}
@@ -187,7 +219,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
 
         <div className={styles.contentWrapper}>
           <div className={styles.contentHeader}>
-            <button 
+            <button
               className={`${styles.sidebarToggle} ${!isSidebarOpen ? styles.toggleClosed : ''}`}
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               aria-label="Toggle Categories"
@@ -208,21 +240,30 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
               </svg>
             </button>
           </div>
-          
-          <MainContent 
+
+          <MainContent
             categoryTitle={selectedCategoryName}
-            items={filteredItems} 
+            items={filteredItems}
             categories={selectedCategoryId === null ? categories : undefined}
             onSelectCategory={(id) => setSelectedCategoryId(id)}
-            onAddToCart={handleAddToCart} 
+            onAddToCart={handleAddToCart}
+            onSelectItem={setSelectedItem}
           />
         </div>
       </main>
 
+      {selectedItem && (
+        <ItemDetailModal
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+          onAddToCart={handleAddToCart}
+        />
+      )}
+
       {isCartOpen && (
-        <CartSidebar 
-          cart={cart} 
-          onUpdateQuantity={handleUpdateQuantity} 
+        <CartSidebar
+          cart={cart}
+          onUpdateQuantity={handleUpdateQuantity}
           onClearCart={() => setCart([])}
           onClose={() => setIsCartOpen(false)}
           onCheckout={handleCheckout}
@@ -256,6 +297,14 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
             setCart([]);
             setShowCheckout(false);
           }}
+          orderType={orderType}
+        />
+      )}
+
+      {showOrderTypeModal && (
+        <OrderTypeModal 
+          onSelectType={handleOrderTypeSelected}
+          onClose={() => setShowOrderTypeModal(false)}
         />
       )}
     </div>

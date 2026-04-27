@@ -14,13 +14,13 @@ interface CheckoutPageProps {
   onClose: () => void;
   onOrderPlaced: () => void;
   userName: string;
+  orderType?: 'delivery' | 'collection';
 }
 
 const DELIVERY_FEE = 2.99;
-const STEPS = ['Order Review', 'Delivery', 'Payment'];
 
 /* ─── Main Component (orchestrator) ─────────── */
-export default function CheckoutPage({ cart, onClose, onOrderPlaced, userName }: CheckoutPageProps) {
+export default function CheckoutPage({ cart, onClose, onOrderPlaced, userName, orderType = 'delivery' }: CheckoutPageProps) {
   const [step, setStep]                     = useState(0);
   const [address, setAddress]               = useState<Address>({ ...EMPTY_ADDRESS, fullName: userName });
   const [addressErrors, setAddressErrors]   = useState<Partial<Address>>({});
@@ -29,7 +29,11 @@ export default function CheckoutPage({ cart, onClose, onOrderPlaced, userName }:
   const [placed, setPlaced]                 = useState(false);
 
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const total    = subtotal + DELIVERY_FEE;
+  const total    = subtotal + (orderType === 'delivery' ? DELIVERY_FEE : 0);
+
+  const stepsList = orderType === 'delivery' 
+    ? ['Order Review', 'Delivery', 'Payment'] 
+    : ['Order Review', 'Payment'];
 
   /* ── Address validation ── */
   const validateAddress = (): boolean => {
@@ -50,7 +54,7 @@ export default function CheckoutPage({ cart, onClose, onOrderPlaced, userName }:
 
   /* ── Navigation ── */
   const goNext = () => {
-    if (step === 1 && !validateAddress()) return;
+    if (orderType === 'delivery' && step === 1 && !validateAddress()) return;
     setStep(s => s + 1);
   };
 
@@ -98,26 +102,26 @@ export default function CheckoutPage({ cart, onClose, onOrderPlaced, userName }:
           </button>
 
           <div className={styles.stepIndicator}>
-            {STEPS.map((label, i) => (
+            {stepsList.map((label, i) => (
               <React.Fragment key={label}>
                 <div className={`${styles.stepDot} ${i <= step ? styles.stepDotActive : ''} ${i < step ? styles.stepDotDone : ''}`}>
                   {i < step ? '✓' : i + 1}
                 </div>
-                {i < STEPS.length - 1 && (
+                {i < stepsList.length - 1 && (
                   <div className={`${styles.stepLine} ${i < step ? styles.stepLineDone : ''}`} />
                 )}
               </React.Fragment>
             ))}
           </div>
 
-          <div className={styles.stepLabel}>{STEPS[step]}</div>
+          <div className={styles.stepLabel}>{stepsList[step]}</div>
         </header>
 
         {/* ── Body — each step is its own component ── */}
         <div className={styles.body}>
           {step === 0 && <OrderReview cart={cart} />}
 
-          {step === 1 && (
+          {orderType === 'delivery' && step === 1 && (
             <AddressForm
               address={address}
               errors={addressErrors}
@@ -125,7 +129,7 @@ export default function CheckoutPage({ cart, onClose, onOrderPlaced, userName }:
             />
           )}
 
-          {step === 2 && (
+          {(orderType === 'delivery' ? step === 2 : step === 1) && (
             <PaymentStep
               cart={cart}
               address={address}
@@ -137,9 +141,9 @@ export default function CheckoutPage({ cart, onClose, onOrderPlaced, userName }:
 
         {/* ── Footer CTA ── */}
         <footer className={styles.footer}>
-          {step < 2 ? (
+          {step < stepsList.length - 1 ? (
             <button className={styles.ctaBtn} onClick={goNext}>
-              {step === 0 ? 'Choose Delivery Address' : 'Continue to Payment'}
+              {step === 0 && orderType === 'delivery' ? 'Choose Delivery Address' : 'Continue to Payment'}
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>

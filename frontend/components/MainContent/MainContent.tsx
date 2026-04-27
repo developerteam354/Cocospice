@@ -9,9 +9,10 @@ interface MainContentProps {
   categories?: Category[];
   onSelectCategory?: (id: string) => void;
   onAddToCart: (item: MenuItem) => void;
+  onSelectItem?: (item: MenuItem) => void;
 }
 
-export default function MainContent({ categoryTitle, items, categories, onSelectCategory, onAddToCart }: MainContentProps) {
+export default function MainContent({ categoryTitle, items, categories, onSelectCategory, onAddToCart, onSelectItem }: MainContentProps) {
   // Category Grid View
   if (categories && onSelectCategory) {
     return (
@@ -20,10 +21,10 @@ export default function MainContent({ categoryTitle, items, categories, onSelect
           {categories.map((cat, index) => {
             const catImage = items.find(i => i.categoryId === cat.id)?.image || '/images/default.png';
             return (
-              <div 
-                key={cat.id} 
-                className={styles.categoryItem} 
-                onClick={() => onSelectCategory(cat.id)} 
+              <div
+                key={cat.id}
+                className={styles.categoryItem}
+                onClick={() => onSelectCategory(cat.id)}
               >
                 <Image src={catImage} alt={cat.name} width={100} height={100} className={styles.categoryItemImage} priority={index < 4} />
                 <span style={{ color: '#000000', fontSize: '1rem', fontWeight: 'bold' }}>{cat.name}</span>
@@ -41,13 +42,18 @@ export default function MainContent({ categoryTitle, items, categories, onSelect
       <h2 style={{ color: '#ffffff', fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '16px', paddingBottom: '8px', borderBottom: '3px solid #004d80', display: 'inline-block' }}>{categoryTitle}</h2>
       <div className={styles.productList}>
         {items.map((item, index) => (
-          <div key={item.id} className={styles.productItem}>
-            <Image 
-              src={item.image} 
-              alt={item.name} 
-              width={100} 
-              height={100} 
-              className={styles.productImage} 
+          <div
+            key={item.id}
+            className={styles.productItem}
+            style={{ animationDelay: `${index * 0.08}s`, cursor: onSelectItem ? 'pointer' : 'default' }}
+            onClick={() => onSelectItem && onSelectItem(item)}
+          >
+            <Image
+              src={item.image}
+              alt={item.name}
+              width={100}
+              height={100}
+              className={styles.productImage}
               priority={index < 4}
             />
             <div className={styles.productInfo}>
