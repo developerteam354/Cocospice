@@ -1,0 +1,127 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { Category, MenuItem, CartItem } from '../../types';
+import Header from '../Header/Header';
+import MainContent from '../MainContent/MainContent';
+import CartSidebar from '../CartSidebar/CartSidebar';
+import SplashScreen from '../SplashScreen/SplashScreen';
+import styles from './ClientApp.module.css';
+
+interface ClientAppProps {
+  categories: Category[];
+  menuItems: MenuItem[];
+}
+
+export default function ClientApp({ categories, menuItems }: ClientAppProps) {
+  const [showSplash, setShowSplash] = useState(true);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [toastKey, setToastKey] = useState(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleAddToCart = (item: MenuItem) => {
+    setCart((prev) => {
+      const existing = prev.find((c) => c.id === item.id);
+      if (existing) {
+        return prev.map((c) => (c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c));
+      }
+      return [...prev, { ...item, quantity: 1 }];
+    });
+    
+    if (window.innerWidth > 768) {
+      setIsCartOpen(true);
+    } else {
+      setToastKey(prev => prev + 1);
+    }
+  };
+
+  const handleUpdateQuantity = (id: string, delta: number) => {
+    setCart((prev) => {
+      return prev.map((c) => {
+        if (c.id === id) {
+          return { ...c, quantity: Math.max(0, c.quantity + delta) };
+        }
+        return c;
+      }).filter(c => c.quantity > 0);
+    });
+  };
+
+  if (showSplash) {
+    return <SplashScreen />;
+  }
+
+  const totalItemsInCart = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const filteredItems = selectedCategoryId === null 
+    ? menuItems 
+    : menuItems.filter(item => item.categoryId === selectedCategoryId);
+
+  const selectedCategoryName = selectedCategoryId === null 
+    ? 'All Categories' 
+    : categories.find(c => c.id === selectedCategoryId)?.name || 'Menu';
+
+  return (
+    <div className={styles.appContainer}>
+      <Header cartCount={totalItemsInCart} onOpenCart={() => setIsCartOpen(true)} />
+      
+      {/* Mobile Cart Bouncing Banner */}
+      {cart.length > 0 && (
+        <div key={toastKey} className={styles.mobileCartBanner} onClick={() => setIsCartOpen(true)}>
+           <div className={styles.mobileCartInfo}>
+             <span className={styles.mobileCartToastText}>⚡ Fast Delivery!</span>
+             <span className={styles.mobileCartTotal}>{totalItemsInCart} items • £{cartTotal.toFixed(2)}</span>
+           </div>
+           <button className={styles.mobileCheckoutBtn}>
+             Order Now
+           </button>
+        </div>
+      )}
+
+      <main className={styles.mainLayout}>
+        <div className={styles.categoryScrollContainer}>
+          <button 
+            className={`${styles.categoryPill} ${selectedCategoryId === null ? styles.activePill : ''}`}
+            onClick={() => setSelectedCategoryId(null)}
+          >
+            All Categories
+          </button>
+          {categories.map(c => (
+            <button 
+              key={c.id}
+              className={`${styles.categoryPill} ${selectedCategoryId === c.id ? styles.activePill : ''}`}
+              onClick={() => setSelectedCategoryId(c.id)}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+
+        <MainContent 
+          categoryTitle={selectedCategoryName}
+          items={filteredItems} 
+          categories={selectedCategoryId === null ? categories : undefined}
+          onSelectCategory={(id) => setSelectedCategoryId(id)}
+          onAddToCart={handleAddToCart} 
+        />
+      </main>
+
+      {isCartOpen && (
+        <CartSidebar 
+          cart={cart} 
+          onUpdateQuantity={handleUpdateQuantity} 
+          onClearCart={() => setCart([])}
+          onClose={() => setIsCartOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
