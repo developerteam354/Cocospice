@@ -155,7 +155,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
       <main className={styles.mainLayout}>
         <div className={`${styles.sidebarWrapper} ${isSidebarOpen ? '' : styles.sidebarClosed}`}>
           <div className={styles.sidebarHeader}>
-            <h3 className={styles.sidebarTitle}>Menu</h3>
+            <h3 className={styles.sidebarTitle} style={{ color: '#92400e' }}>Menu</h3>
             <div className={styles.sidebarBadge}>{categories.length + 1}</div>
           </div>
           <div className={styles.categoryScrollContainer}>
@@ -164,7 +164,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
               onClick={() => setSelectedCategoryId(null)}
             >
               <span className={styles.categoryIcon}>🍽️</span>
-              <span className={styles.categoryText}>All Categories</span>
+              <span className={`${styles.categoryText} text-black`}>All Categories</span>
               {selectedCategoryId === null && <span className={styles.activeIndicator} />}
             </button>
             {categories.map((c, i) => {
@@ -177,7 +177,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
                   onClick={() => setSelectedCategoryId(c.id)}
                 >
                   <span className={styles.categoryIcon}>{icon}</span>
-                  <span className={styles.categoryText}>{c.name}</span>
+                  <span className={`${styles.categoryText} text-black`}>{c.name}</span>
                   {selectedCategoryId === c.id && <span className={styles.activeIndicator} />}
                 </button>
               );

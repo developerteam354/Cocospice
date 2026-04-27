@@ -10,12 +10,12 @@
 }
 
 .topBar {
-  background: var(--surface-hover);
+  background: #005652;
   padding: 8px 24px;
   display: flex;
   justify-content: flex-end;
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: #ffffff;
 }
 
 .info {

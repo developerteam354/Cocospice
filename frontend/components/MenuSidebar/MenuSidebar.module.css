@@ -1,6 +1,6 @@
 .sidebar {
   width: 250px;
-  background: var(--surface-color);
+  background: #ffffff;
   border-right: 1px solid var(--border-color);
   overflow-y: auto;
   display: flex;
@@ -11,7 +11,7 @@
   padding: 20px;
   margin: 0;
   font-size: 1.5rem;
-  color: var(--text-primary);
+  color: #000000;
   border-bottom: 1px solid var(--border-color);
   text-align: center;
   font-weight: 600;
@@ -34,7 +34,7 @@
   background: transparent;
   border: none;
   text-align: left;
-  color: var(--text-secondary);
+  color: #000000;
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -43,13 +43,13 @@
 }
 
 .categoryBtn:hover {
-  background: var(--surface-hover);
-  color: var(--text-primary);
+  background: #f3f4f6;
+  color: #000000;
 }
 
 .categoryBtn.active {
   background: rgba(255, 107, 53, 0.05);
-  color: var(--primary-color);
+  color: #10b981;
   font-weight: bold;
 }
 
