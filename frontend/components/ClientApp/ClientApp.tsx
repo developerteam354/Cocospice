@@ -155,7 +155,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
       <main className={styles.mainLayout}>
         <div className={`${styles.sidebarWrapper} ${isSidebarOpen ? '' : styles.sidebarClosed}`}>
           <div className={styles.sidebarHeader}>
-            <h3 className={styles.sidebarTitle} style={{ color: '#92400e' }}>Menu</h3>
+            <h3 className={styles.sidebarTitle} style={{ color: '#7c2f00' }}>Menu</h3>
             <div className={styles.sidebarBadge}>{categories.length + 1}</div>
           </div>
           <div className={styles.categoryScrollContainer}>
