@@ -2,10 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { Category, MenuItem, CartItem } from '../../types';
+import { useAuth } from '../../contexts/AuthContext';
 import Header from '../Header/Header';
 import MainContent from '../MainContent/MainContent';
 import CartSidebar from '../CartSidebar/CartSidebar';
 import SplashScreen from '../SplashScreen/SplashScreen';
+import AuthModal from '../AuthModal/AuthModal';
+import LoginPrompt from '../LoginPrompt/LoginPrompt';
 import styles from './ClientApp.module.css';
 
 interface ClientAppProps {
@@ -14,12 +17,18 @@ interface ClientAppProps {
 }
 
 export default function ClientApp({ categories, menuItems }: ClientAppProps) {
+  const { user } = useAuth();
   const [showSplash, setShowSplash] = useState(true);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [toastKey, setToastKey] = useState(0);
   const [toasts, setToasts] = useState<{id: number, message: string}[]>([]);
+
+  // Auth modal state
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -62,6 +71,35 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
     });
   };
 
+  // Checkout handler — checks auth before proceeding
+  const handleCheckout = () => {
+    if (!user) {
+      setShowLoginPrompt(true);
+      return;
+    }
+    // TODO: Proceed to actual checkout flow
+    alert(`Proceeding to checkout for ${user.name}!`);
+  };
+
+  // Login prompt → open auth modal
+  const handlePromptSignIn = () => {
+    setShowLoginPrompt(false);
+    setAuthModalMode('login');
+    setShowAuthModal(true);
+  };
+
+  const handlePromptSignUp = () => {
+    setShowLoginPrompt(false);
+    setAuthModalMode('signup');
+    setShowAuthModal(true);
+  };
+
+  // Open auth modal from header
+  const handleOpenAuth = (mode: 'login' | 'signup') => {
+    setAuthModalMode(mode);
+    setShowAuthModal(true);
+  };
+
   if (showSplash) {
     return <SplashScreen />;
   }
@@ -79,7 +117,11 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
 
   return (
     <div className={styles.appContainer}>
-      <Header cartCount={totalItemsInCart} onOpenCart={() => setIsCartOpen(true)} />
+      <Header
+        cartCount={totalItemsInCart}
+        onOpenCart={() => setIsCartOpen(true)}
+        onOpenAuth={handleOpenAuth}
+      />
       
       {/* Toast Notification Container */}
       <div className={styles.toastContainer}>
@@ -138,6 +180,24 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
           onUpdateQuantity={handleUpdateQuantity} 
           onClearCart={() => setCart([])}
           onClose={() => setIsCartOpen(false)}
+          onCheckout={handleCheckout}
+        />
+      )}
+
+      {/* Login Prompt Popup */}
+      {showLoginPrompt && (
+        <LoginPrompt
+          onSignIn={handlePromptSignIn}
+          onSignUp={handlePromptSignUp}
+          onClose={() => setShowLoginPrompt(false)}
+        />
+      )}
+
+      {/* Auth Modal (Login/Signup form) */}
+      {showAuthModal && (
+        <AuthModal
+          initialMode={authModalMode}
+          onClose={() => setShowAuthModal(false)}
         />
       )}
     </div>

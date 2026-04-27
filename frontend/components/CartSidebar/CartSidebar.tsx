@@ -7,9 +7,10 @@ interface CartSidebarProps {
   onUpdateQuantity: (id: string, delta: number) => void;
   onClearCart: () => void;
   onClose: () => void;
+  onCheckout: () => void;
 }
 
-export default function CartSidebar({ cart, onUpdateQuantity, onClearCart, onClose }: CartSidebarProps) {
+export default function CartSidebar({ cart, onUpdateQuantity, onClearCart, onClose, onCheckout }: CartSidebarProps) {
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   // Dragging state
@@ -89,7 +90,7 @@ export default function CartSidebar({ cart, onUpdateQuantity, onClearCart, onClo
           <span>Total</span>
           <span>£{subtotal.toFixed(2)}</span>
         </div>
-        <button className={styles.checkoutBtn} disabled={cart.length === 0}>
+        <button className={styles.checkoutBtn} disabled={cart.length === 0} onClick={onCheckout}>
           Checkout
         </button>
       </div>

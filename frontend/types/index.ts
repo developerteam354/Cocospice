@@ -15,3 +15,10 @@ export interface Category {
 export interface CartItem extends MenuItem {
   quantity: number;
 }
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+}
