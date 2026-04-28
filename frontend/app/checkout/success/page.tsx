@@ -13,7 +13,13 @@ export default function SuccessPage() {
 
   useEffect(() => {
     // Reveal details after the complex packing & dispatch sequence
-    const timer = setTimeout(() => setShowDetails(true), 5500);
+    const timer = setTimeout(() => {
+      setShowDetails(true);
+      // Play a premium success sound
+      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3');
+      audio.volume = 0.4;
+      audio.play().catch(err => console.log('Audio play failed:', err));
+    }, 5500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -71,14 +77,14 @@ export default function SuccessPage() {
         <div className={`${styles.detailsReveal} ${showDetails ? styles.visible : ''}`}>
           {showDetails && (
             <div className={styles.confettiPopper}>
-              {[...Array(30)].map((_, i) => (
+              {[...Array(40)].map((_, i) => (
                 <div
                   key={i}
                   className={styles.popperPiece}
                   style={{
-                    '--delay': `${Math.random() * 0.5}s`,
-                    '--x': `${(Math.random() - 0.5) * 600}px`,
-                    '--y': `${-Math.random() * 400}px`,
+                    '--delay': `${Math.random() * 0.4}s`,
+                    '--x': `${(Math.random() - 0.5) * 800}px`,
+                    '--y': `${-Math.random() * 500}px`,
                     '--rot': `${Math.random() * 360}deg`,
                     '--color': ['#10b981', '#fbbf24', '#3b82f6', '#f43f5e'][Math.floor(Math.random() * 4)]
                   } as any}
@@ -86,31 +92,34 @@ export default function SuccessPage() {
               ))}
             </div>
           )}
-          <div className={styles.successIcon}>✨</div>
-          <h1 className={styles.title}>Order Confirmed!</h1>
-          <p className={styles.message}>
-            Thank you for choosing <strong>CocoSpice</strong>, {user?.name.split(' ')[0] || 'Guest'}!
-            Your order is now on its way.
-          </p>
+          
+          <div className={styles.staggeredContent}>
+            <div className={styles.successIcon} style={{ '--order': 1 } as any}>✨</div>
+            <h1 className={styles.title} style={{ '--order': 2 } as any}>Order Confirmed!</h1>
+            <p className={styles.message} style={{ '--order': 3 } as any}>
+              Thank you for choosing <strong>CocoSpice</strong>, {user?.name.split(' ')[0] || 'Guest'}! 
+              Your order is now on its way.
+            </p>
 
-          <div className={styles.orderInfo}>
-            <div className={styles.infoRow}>
-              <span>Order Number:</span>
-              <strong>#CS-{Math.floor(1000 + Math.random() * 9000)}</strong>
+            <div className={styles.orderInfo} style={{ '--order': 4 } as any}>
+              <div className={styles.infoRow}>
+                <span>Order Number:</span>
+                <strong>#CS-{Math.floor(1000 + Math.random() * 9000)}</strong>
+              </div>
+              <div className={styles.infoRow}>
+                <span>Estimated Time:</span>
+                <strong>30 - 45 Mins</strong>
+              </div>
             </div>
-            <div className={styles.infoRow}>
-              <span>Estimated Time:</span>
-              <strong>30 - 45 Mins</strong>
-            </div>
-          </div>
 
-          <div className={styles.actions}>
-            <Link href="/" className={styles.continueBtn}>
-              Continue Shopping
-            </Link>
-            <button className={styles.viewOrderBtn} onClick={() => alert('Order tracking feature coming soon!')}>
-              View My Order
-            </button>
+            <div className={styles.actions} style={{ '--order': 5 } as any}>
+              <Link href="/" className={styles.continueBtn}>
+                Continue Shopping
+              </Link>
+              <button className={styles.viewOrderBtn} onClick={() => alert('Order tracking feature coming soon!')}>
+                View My Order
+              </button>
+            </div>
           </div>
         </div>
       </div>
