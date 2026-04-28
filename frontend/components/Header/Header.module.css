@@ -462,7 +462,8 @@
 /* ─── Mobile ─── */
 @media (max-width: 768px) {
   .mainHeader {
-    padding: 10px 16px;
+    padding: 10px 12px;
+    gap: 8px;
   }
 
   .subtitle { display: none; }
@@ -476,8 +477,19 @@
   .loginButton { display: none; }
 
   .cartButton {
-    padding: 8px 14px;
-    font-size: 0.85rem;
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    gap: 4px;
+  }
+
+  .cartButton span:not(.badge) {
+    display: none;
+  }
+
+  .avatarCircle {
+    width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
   }
 
   .userDropdown {

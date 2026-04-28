@@ -67,11 +67,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
       setToasts(prev => prev.filter(t => t.id !== newToastId));
     }, 3000);
 
-    if (window.innerWidth > 768) {
-      setIsCartOpen(true);
-    } else {
-      setToastKey(prev => prev + 1);
-    }
+    setToastKey(prev => prev + 1);
   };
 
   const handleConfirmOptions = (options: Record<string, string>) => {
@@ -149,11 +145,11 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
         ))}
       </div>
 
-      {/* Mobile Cart Bouncing Banner */}
+      {/* Floating Cart Bouncing Banner */}
       {cart.length > 0 && !isCartOpen && (
-        <div key={toastKey} className={styles.mobileCartBanner} onClick={() => setIsCartOpen(true)}>
+        <div key={toastKey} className={styles.floatingCartBanner} onClick={() => setIsCartOpen(true)}>
           {/* Item Thumbnails */}
-          <div className={styles.mobileCartThumbsWrap}>
+          <div className={styles.floatingCartThumbsWrap}>
             {cart.slice(0, 3).map((item, i) => (
               <Image
                 key={item.id}
@@ -161,23 +157,23 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
                 alt={item.name}
                 width={36}
                 height={36}
-                className={styles.mobileCartThumb}
+                className={styles.floatingCartThumb}
                 style={{ zIndex: 3 - i, marginLeft: i === 0 ? 0 : -10 }}
               />
             ))}
             {cart.length > 3 && (
-              <div className={styles.mobileCartThumbMore}>+{cart.length - 3}</div>
+              <div className={styles.floatingCartThumbMore}>+{cart.length - 3}</div>
             )}
           </div>
-
+ 
           {/* Item count + total */}
-          <div className={styles.mobileCartInfo}>
-            <span className={styles.mobileCartCount}>{totalItemsInCart} item{totalItemsInCart > 1 ? 's' : ''}</span>
-            <span className={styles.mobileCartTotal}>£{cartTotal.toFixed(2)}</span>
+          <div className={styles.floatingCartInfo}>
+            <span className={styles.floatingCartCount}>{totalItemsInCart} item{totalItemsInCart > 1 ? 's' : ''}</span>
+            <span className={styles.floatingCartTotal}>£{cartTotal.toFixed(2)}</span>
           </div>
-
+ 
           {/* Order Now CTA */}
-          <button className={styles.mobileCheckoutBtn}>
+          <button className={styles.floatingCheckoutBtn}>
             Order Now
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
