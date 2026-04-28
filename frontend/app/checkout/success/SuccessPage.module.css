@@ -1,0 +1,722 @@
+.container {
+  min-height: calc(100vh - 200px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeIn 0.5s ease;
+}
+
+.card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 900px;
+  padding: 48px 32px;
+  border-radius: 32px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+/* ── Original Dispatch Graphics ── */
+.dispatchScene {
+  position: relative;
+  height: 350px;
+  width: 100%;
+  background: linear-gradient(to bottom, #bae6fd 0%, #e0f2fe 70%, #f1f5f9 100%);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+}
+
+/* ── Environment ── */
+.clouds {
+  position: absolute;
+  top: 20px;
+  width: 100%;
+}
+
+.cloud {
+  position: absolute;
+  width: 50px;
+  height: 20px;
+  background: white;
+  border-radius: 20px;
+  opacity: 0.8;
+  animation: floatCloud 20s linear infinite;
+}
+
+.cloud:nth-child(1) {
+  top: 10px;
+  left: 10%;
+}
+
+.cloud:nth-child(2) {
+  top: 40px;
+  left: 60%;
+  animation-delay: -10s;
+}
+
+@keyframes floatCloud {
+  from {
+    transform: translateX(400px);
+  }
+
+  to {
+    transform: translateX(-400px);
+  }
+}
+
+.building {
+  position: absolute;
+  bottom: 40px;
+  left: 0;
+  width: 240px;
+  height: 160px;
+  background: #f8fafc;
+  border: 3px solid #cbd5e1;
+  border-radius: 0 12px 0 0;
+  z-index: 1;
+}
+
+.restaurantDoor {
+  position: absolute;
+  bottom: 0;
+  left: 30px;
+  width: 45px;
+  height: 80px;
+  background: #1e293b;
+  border: 2px solid #475569;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+}
+
+.buildingWindow {
+  width: 35px;
+  height: 45px;
+  background: #bae6fd;
+  display: inline-block;
+  margin: 10px 10px 10px 90px;
+  border: 2px solid #cbd5e1;
+  opacity: 0.4;
+}
+
+.restaurantSign {
+  position: absolute;
+  top: -20px;
+  /* Lowered slightly to avoid overlap with top text */
+  left: 120px;
+  transform: translateX(-50%);
+  background: #ef4444;
+  color: white;
+  padding: 6px 20px;
+  font-weight: 950;
+  font-size: 1rem;
+  border-radius: 6px;
+  box-shadow: 0 6px 0 #b91c1c, 0 10px 20px rgba(239, 68, 68, 0.3);
+  white-space: nowrap;
+  letter-spacing: 2px;
+  z-index: 50;
+}
+
+.awning {
+  position: absolute;
+  top: 10px;
+  left: -10px;
+  width: 260px;
+  height: 25px;
+  background: repeating-linear-gradient(90deg, #ef4444, #ef4444 20px, #ffffff 20px, #ffffff 40px);
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.road {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 60px;
+  background: #334155;
+  border-top: 4px solid #475569;
+}
+
+.roadMarkings {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, #fff, #fff 20px, transparent 20px, transparent 40px);
+  opacity: 0.3;
+}
+
+/* ── The Van ── */
+.van {
+  position: absolute;
+  bottom: 20px;
+  left: 65%;
+  transform: translateX(-50%);
+  width: 150px;
+  height: 80px;
+  z-index: 5;
+  animation: vanWaitAndGo 5.5s ease-in-out forwards;
+}
+
+.vanBody {
+  width: 100%;
+  height: 65px;
+  background: var(--primary-color);
+  border-radius: 12px 12px 4px 4px;
+  position: relative;
+  box-shadow: inset -10px 0 0 rgba(0, 0, 0, 0.1);
+}
+
+.vanDoor {
+  position: absolute;
+  left: 5px;
+  top: 10px;
+  width: 40px;
+  height: 45px;
+  background: #059669;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  transform-origin: left;
+  z-index: 10;
+  animation: vanDoorOpen 5s forwards;
+}
+
+@keyframes vanDoorOpen {
+
+  0%,
+  30% {
+    transform: rotateY(0);
+  }
+
+  35%,
+  65% {
+    transform: rotateY(-110deg);
+  }
+
+  70%,
+  100% {
+    transform: rotateY(0);
+  }
+}
+
+.vanWindow {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 40px;
+  height: 25px;
+  background: #bae6fd;
+  border-radius: 4px 10px 4px 4px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.exhaust {
+  position: absolute;
+  bottom: 5px;
+  left: -10px;
+  width: 10px;
+  height: 10px;
+  background: #94a3b8;
+  border-radius: 50%;
+  opacity: 0;
+  animation: exhaustPuff 0.5s ease-out 4s infinite;
+}
+
+@keyframes exhaustPuff {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: scale(2) translateX(-20px);
+    opacity: 0;
+  }
+}
+
+@keyframes vanWaitAndGo {
+
+  0%,
+  75% {
+    transform: translateX(-50%) scale(1);
+  }
+
+  78% {
+    transform: translateX(-50%) translateY(-2px);
+  }
+
+  100% {
+    transform: translateX(800px);
+  }
+
+  /* Further travel for wider card */
+}
+
+.vanWheel1,
+.vanWheel2 {
+  position: absolute;
+  bottom: -8px;
+  width: 24px;
+  height: 24px;
+  background: #0f172a;
+  border-radius: 50%;
+  border: 3px solid #4b5563;
+}
+
+.vanWheel1 {
+  left: 25px;
+}
+
+.vanWheel2 {
+  right: 25px;
+}
+
+/* ── The Human ── */
+.human {
+  position: absolute;
+  bottom: 20px;
+  left: 45px;
+  /* Start at the door */
+  width: 30px;
+  height: 60px;
+  z-index: 20;
+  /* Above the van back but below door when open */
+  opacity: 0;
+  animation: humanExitAndWalk 4s ease-out forwards;
+}
+
+.head {
+  width: 16px;
+  height: 16px;
+  background: #fcd34d;
+  border-radius: 50%;
+  margin: 0 auto;
+}
+
+.body {
+  width: 14px;
+  height: 28px;
+  background: #1e293b;
+  border-radius: 4px;
+  margin: 2px auto 0;
+}
+
+.leg1,
+.leg2 {
+  position: absolute;
+  bottom: 0;
+  width: 5px;
+  height: 15px;
+  background: #1e293b;
+  animation: legMove 0.4s infinite alternate;
+}
+
+.leg1 {
+  left: 8px;
+}
+
+.leg2 {
+  right: 8px;
+  animation-delay: -0.2s;
+}
+
+@keyframes legMove {
+  from {
+    transform: rotate(-15deg);
+  }
+
+  to {
+    transform: rotate(15deg);
+  }
+}
+
+@keyframes humanExitAndWalk {
+  0% {
+    left: 45px;
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  40%,
+  70% {
+    left: calc(65% - 105px);
+    opacity: 1;
+  }
+
+  100% {
+    left: calc(65% - 180px);
+    opacity: 0;
+  }
+}
+
+.packageItem {
+  position: absolute;
+  top: 18px;
+  right: -14px;
+  width: 16px;
+  height: 16px;
+  background: #d97706;
+  border: 1px solid #92400e;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+  animation: packageArcLoad 5.2s forwards;
+}
+
+@keyframes packageArcLoad {
+
+  0%,
+  10% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  15% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  40% {
+    transform: translate(0, 0);
+  }
+
+  55% {
+    transform: translate(25px, -30px) rotate(20deg);
+  }
+
+  /* Parabolic Arc */
+  65%,
+  100% {
+    transform: translate(50px, -5px) scale(0);
+    opacity: 0;
+  }
+}
+
+.dispatchText {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #1e293b;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.4);
+  padding: 4px 16px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
+}
+
+@keyframes textChange {
+
+  0%,
+  65% {
+    opacity: 1;
+    content: "Packing your order...";
+  }
+
+  70% {
+    opacity: 0;
+  }
+
+  75%,
+  100% {
+    opacity: 1;
+    content: "Order Dispatched!";
+  }
+}
+
+@keyframes pulseText {
+
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ── Celebration Popper ── */
+.confettiPopper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1px;
+  height: 1px;
+  z-index: 200;
+  pointer-events: none;
+}
+
+.popperPiece {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--color);
+  border-radius: 2px;
+  opacity: 0;
+  animation: popperBlast 2s cubic-bezier(0.1, 0.8, 0.3, 1) var(--delay) forwards;
+}
+
+@keyframes popperBlast {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(0);
+    opacity: 1;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(var(--x), var(--y)) rotate(var(--rot)) scale(1);
+    opacity: 0;
+  }
+}
+
+/* ── Details Reveal ── */
+.detailsReveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  height: 0;
+  overflow: hidden;
+}
+
+.detailsReveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  height: auto;
+  padding-top: 10px;
+}
+
+.successIcon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.message {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+}
+
+.orderInfo {
+  background: var(--surface-hover);
+  padding: 20px;
+  border-radius: 20px;
+  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.infoRow strong {
+  color: var(--primary-color);
+  font-weight: 800;
+}
+
+/* ── Actions ── */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.continueBtn {
+  background: var(--primary-color);
+  color: #fff;
+  text-decoration: none;
+  padding: 16px;
+  border-radius: 16px;
+  font-weight: 800;
+  font-size: 1.05rem;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+}
+
+.continueBtn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(16, 185, 129, 0.4);
+  background: var(--primary-hover);
+}
+
+.viewOrderBtn {
+  background: #fff;
+  color: var(--text-primary);
+  border: 2px solid var(--border-color);
+  padding: 16px;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.viewOrderBtn:hover {
+  background: var(--surface-hover);
+  border-color: var(--text-primary);
+}
+
+.support {
+  margin-top: 32px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.support a {
+  color: var(--primary-color);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* ── Confetti ── */
+.confetti {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.confetto {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--primary-color);
+  border-radius: 50%;
+  opacity: 0;
+  animation: confettiFall 1.5s ease-out var(--delay) forwards;
+}
+
+.confetto:nth-child(even) {
+  background: #ffd700;
+}
+
+.confetto:nth-child(3n) {
+  background: #ff4757;
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(var(--x), 100px) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 32px 16px;
+    border-radius: 24px;
+  }
+
+  .dispatchScene {
+    height: 240px;
+  }
+
+  .building {
+    width: 200px;
+    height: 140px;
+    bottom: 40px;
+  }
+
+  .restaurantSign {
+    font-size: 0.8rem;
+    padding: 3px 10px;
+    left: 100px;
+    top: -18px;
+  }
+
+  .awning {
+    width: 220px;
+  }
+
+  .van {
+    width: 120px;
+    height: 65px;
+    left: 70%;
+  }
+
+  .vanBody {
+    height: 50px;
+  }
+
+  .vanDoor {
+    width: 30px;
+    height: 35px;
+  }
+
+  .vanWindow {
+    width: 30px;
+    height: 20px;
+    right: 8px;
+  }
+
+  .human {
+    left: 40px;
+    transform: scale(0.9);
+  }
+
+  .dispatchText {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    letter-spacing: 1px;
+    top: 6px;
+  }
+
+  .title {
+    font-size: 1.6rem;
+  }
+
+  .message {
+    font-size: 0.95rem;
+  }
+}

@@ -10,13 +10,12 @@ import styles from '@/components/CheckoutPage/CheckoutPage.module.css';
 const DELIVERY_FEE = 2.99;
 
 export default function PaymentPage() {
-  const { cart, orderType, clearCart, cartTotal } = useCart();
+  const { cart, orderType, clearCart, cartTotal, shippingAddress } = useCart();
   const { user } = useAuth();
   const router = useRouter();
   
   const [payment, setPayment] = useState<PaymentMethod>('card');
   const [placing, setPlacing] = useState(false);
-  const [placed, setPlaced] = useState(false);
 
   const total = cartTotal + (orderType === 'delivery' ? DELIVERY_FEE : 0);
 
@@ -25,29 +24,11 @@ export default function PaymentPage() {
     // Simulate API call
     await new Promise(r => setTimeout(r, 2000));
     setPlacing(false);
-    setPlaced(true);
     
-    setTimeout(() => {
-      clearCart();
-      router.push('/');
-    }, 3000);
+    // Clear cart and redirect to success page
+    clearCart();
+    router.push('/checkout/success');
   };
-
-  if (placed) {
-    return (
-      <div className={styles.successWrap}>
-        <div className={styles.successBowl}>🍛</div>
-        <div className={styles.successRings}>
-          <span /><span /><span />
-        </div>
-        <h2 className={styles.successTitle}>Order Placed! 🎉</h2>
-        <p className={styles.successSub}>
-          Thanks, {user?.name.split(' ')[0]}! Your delicious food is being prepared and will arrive shortly.
-        </p>
-        <div className={styles.successEta}>⏱ Estimated delivery: <strong>30–45 min</strong></div>
-      </div>
-    );
-  }
 
   return (
     <>
