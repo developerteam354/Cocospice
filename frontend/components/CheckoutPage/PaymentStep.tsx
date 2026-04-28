@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { CartItem } from '../../types';
 import { Address } from './AddressForm';
+import { useCart } from '../../contexts/CartContext';
 import styles from './CheckoutPage.module.css';
 
 /* ─── Types ─────────────────────────────────── */
@@ -25,13 +26,14 @@ const formatExpiry = (v: string) =>
   v.replace(/\D/g, '').slice(0, 4).replace(/^(\d{2})(\d)/, '$1/$2');
 
 export default function PaymentStep({ cart, address, payment, onPaymentChange }: PaymentStepProps) {
+  const { orderType } = useCart();
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCvv, setCardCvv] = useState('');
   const [cardName, setCardName] = useState('');
 
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const total = subtotal + DELIVERY_FEE;
+  const total = subtotal + (orderType === 'delivery' ? DELIVERY_FEE : 0);
   const itemCount = cart.reduce((s, i) => s + i.quantity, 0);
 
   const METHODS: { id: PaymentMethod; icon: string; label: string }[] = [
@@ -130,7 +132,7 @@ export default function PaymentStep({ cart, address, payment, onPaymentChange }:
       {payment === 'cash' && (
         <div className={styles.cashInfo}>
           <span className={styles.cashIcon}>💵</span>
-          <p>Please have <strong>£{total.toFixed(2)}</strong> ready when your rider arrives. Exact change is appreciated!</p>
+          <p>Please have <strong>£{total.toFixed(2)}</strong> ready when {orderType === 'delivery' ? 'your rider arrives' : 'you arrive for collection'}. Exact change is appreciated!</p>
         </div>
       )}
 
@@ -140,10 +142,12 @@ export default function PaymentStep({ cart, address, payment, onPaymentChange }:
           <span>Items ({itemCount})</span>
           <span>£{subtotal.toFixed(2)}</span>
         </div>
-        <div className={styles.miniRow}>
-          <span>Delivery</span>
-          <span>£{DELIVERY_FEE.toFixed(2)}</span>
-        </div>
+        {orderType === 'delivery' && (
+          <div className={styles.miniRow}>
+            <span>Delivery</span>
+            <span>£{DELIVERY_FEE.toFixed(2)}</span>
+          </div>
+        )}
         <div className={`${styles.miniRow} ${styles.miniTotal}`}>
           <span>Total</span>
           <span>£{total.toFixed(2)}</span>
@@ -151,15 +155,17 @@ export default function PaymentStep({ cart, address, payment, onPaymentChange }:
       </div>
 
       {/* ── Deliver-to summary ── */}
-      <div className={styles.addressSummary}>
-        <span className={styles.addressIcon}>📍</span>
-        <div>
-          <div className={styles.addressName}>{address.fullName}</div>
-          <div className={styles.addressText}>
-            {[address.line1, address.line2, address.city, address.postcode].filter(Boolean).join(', ')}
+      {orderType === 'delivery' && address.line1 && (
+        <div className={styles.addressSummary}>
+          <span className={styles.addressIcon}>📍</span>
+          <div>
+            <div className={styles.addressName}>{address.fullName}</div>
+            <div className={styles.addressText}>
+              {[address.line1, address.line2, address.city, address.postcode].filter(Boolean).join(', ')}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

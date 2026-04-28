@@ -4,17 +4,18 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Category, MenuItem, CartItem } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
 import Header from '../Header/Header';
 import MainContent from '../MainContent/MainContent';
 import CartSidebar from '../CartSidebar/CartSidebar';
 import SplashScreen from '../SplashScreen/SplashScreen';
 import AuthModal from '../AuthModal/AuthModal';
 import LoginPrompt from '../LoginPrompt/LoginPrompt';
-import CheckoutPage from '../CheckoutPage/CheckoutPage';
 import ItemDetailModal from '../ItemDetailModal/ItemDetailModal';
 import OrderTypeModal from '../OrderTypeModal/OrderTypeModal';
 import ItemOptionsModal from '../ItemOptionsModal/ItemOptionsModal';
 import styles from './ClientApp.module.css';
+import { useRouter } from 'next/navigation';
 
 interface ClientAppProps {
   categories: Category[];
@@ -23,10 +24,12 @@ interface ClientAppProps {
 
 export default function ClientApp({ categories, menuItems }: ClientAppProps) {
   const { user } = useAuth();
+  const { cart, addToCart: addItemToCart, updateQuantity: handleUpdateQuantity, clearCart, cartTotal, totalItems: totalItemsInCart, orderType, setOrderType } = useCart();
+  const router = useRouter();
+  
   const [showSplash, setShowSplash] = useState(true);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
-  const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [toastKey, setToastKey] = useState(0);
   const [toasts, setToasts] = useState<{ id: number, message: string }[]>([]);
@@ -37,9 +40,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
 
   // Checkout page
-  const [showCheckout, setShowCheckout] = useState(false);
   const [showOrderTypeModal, setShowOrderTypeModal] = useState(false);
-  const [orderType, setOrderType] = useState<'delivery' | 'collection'>('delivery');
   const [itemWithOptions, setItemWithOptions] = useState<MenuItem | null>(null);
 
   useEffect(() => {
@@ -56,27 +57,12 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
       return;
     }
     addItemToCart(item);
+    showToast(`${item.name} added to cart`);
   };
 
-  const addItemToCart = (item: MenuItem, selectedOptions?: Record<string, string>) => {
-    setCart((prev) => {
-      const existing = prev.find((c) => 
-        c.id === item.id && 
-        JSON.stringify(c.selectedOptions) === JSON.stringify(selectedOptions)
-      );
-      if (existing) {
-        return prev.map((c) => (
-          c.id === item.id && JSON.stringify(c.selectedOptions) === JSON.stringify(selectedOptions) 
-            ? { ...c, quantity: c.quantity + 1 } 
-            : c
-        ));
-      }
-      return [...prev, { ...item, quantity: 1, selectedOptions }];
-    });
-
-    // Add toast
+  const showToast = (message: string) => {
     const newToastId = Date.now();
-    setToasts(prev => [...prev, { id: newToastId, message: `${item.name} added to cart` }]);
+    setToasts(prev => [...prev, { id: newToastId, message }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== newToastId));
     }, 3000);
@@ -92,18 +78,8 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
     if (itemWithOptions) {
       addItemToCart(itemWithOptions, options);
       setItemWithOptions(null);
+      showToast(`${itemWithOptions.name} added to cart`);
     }
-  };
-
-  const handleUpdateQuantity = (index: number, delta: number) => {
-    setCart((prev) => {
-      return prev.map((c, i) => {
-        if (i === index) {
-          return { ...c, quantity: Math.max(0, c.quantity + delta) };
-        }
-        return c;
-      }).filter(c => c.quantity > 0);
-    });
   };
 
   // Checkout handler — checks auth before proceeding
@@ -119,7 +95,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
   const handleOrderTypeSelected = (type: 'delivery' | 'collection') => {
     setOrderType(type);
     setShowOrderTypeModal(false);
-    setShowCheckout(true);
+    router.push('/checkout/review');
   };
 
   // Login prompt → open auth modal
@@ -146,9 +122,6 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
   if (showSplash) {
     return <SplashScreen />;
   }
-
-  const totalItemsInCart = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const filteredItems = selectedCategoryId === null
     ? menuItems
@@ -289,9 +262,16 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
         <CartSidebar
           cart={cart}
           onUpdateQuantity={handleUpdateQuantity}
-          onClearCart={() => setCart([])}
+          onClearCart={clearCart}
           onClose={() => setIsCartOpen(false)}
           onCheckout={handleCheckout}
+        />
+      )}
+
+      {showOrderTypeModal && (
+        <OrderTypeModal 
+          onSelectType={handleOrderTypeSelected}
+          onClose={() => setShowOrderTypeModal(false)}
         />
       )}
 
@@ -309,27 +289,6 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
         <AuthModal
           initialMode={authModalMode}
           onClose={() => setShowAuthModal(false)}
-        />
-      )}
-
-      {/* Checkout Page */}
-      {showCheckout && user && (
-        <CheckoutPage
-          cart={cart}
-          userName={user.name}
-          onClose={() => setShowCheckout(false)}
-          onOrderPlaced={() => {
-            setCart([]);
-            setShowCheckout(false);
-          }}
-          orderType={orderType}
-        />
-      )}
-
-      {showOrderTypeModal && (
-        <OrderTypeModal 
-          onSelectType={handleOrderTypeSelected}
-          onClose={() => setShowOrderTypeModal(false)}
         />
       )}
 

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { CartItem } from '../../types';
+import { useCart } from '../../contexts/CartContext';
 import styles from './CheckoutPage.module.css';
 
 const DELIVERY_FEE = 2.99;
@@ -13,12 +14,13 @@ interface OrderReviewProps {
 }
 
 export default function OrderReview({ cart, note, onNoteChange }: OrderReviewProps) {
+  const { orderType } = useCart();
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [tempNote, setTempNote] = useState(note);
   const [hasSavedNote, setHasSavedNote] = useState(note.length > 0);
 
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const total = subtotal + DELIVERY_FEE;
+  const total = subtotal + (orderType === 'delivery' ? DELIVERY_FEE : 0);
 
   const handleSaveNote = () => {
     onNoteChange(tempNote);
@@ -108,10 +110,12 @@ export default function OrderReview({ cart, note, onNoteChange }: OrderReviewPro
           <span>Subtotal</span>
           <span>£{subtotal.toFixed(2)}</span>
         </div>
-        <div className={styles.totalRow}>
-          <span>Delivery fee</span>
-          <span>£{DELIVERY_FEE.toFixed(2)}</span>
-        </div>
+        {orderType === 'delivery' && (
+          <div className={styles.totalRow}>
+            <span>Delivery fee</span>
+            <span>£{DELIVERY_FEE.toFixed(2)}</span>
+          </div>
+        )}
         <div className={`${styles.totalRow} ${styles.grandTotal}`}>
           <span>Total</span>
           <span>£{total.toFixed(2)}</span>
