@@ -52,7 +52,7 @@ export default function Header({ cartCount, onOpenCart, onOpenAuth }: HeaderProp
             <h1 className={styles.logo}>
               Coco<span className={styles.logoAccent}>spice</span>
             </h1>
-            <p className={styles.subtitle}>Britain&apos;s Premier Indian Cuisine</p>
+            <p className={styles.subtitle}> Indian Cuisine</p>
           </div>
         </a>
 

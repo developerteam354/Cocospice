@@ -13,6 +13,7 @@ import LoginPrompt from '../LoginPrompt/LoginPrompt';
 import CheckoutPage from '../CheckoutPage/CheckoutPage';
 import ItemDetailModal from '../ItemDetailModal/ItemDetailModal';
 import OrderTypeModal from '../OrderTypeModal/OrderTypeModal';
+import ItemOptionsModal from '../ItemOptionsModal/ItemOptionsModal';
 import styles from './ClientApp.module.css';
 
 interface ClientAppProps {
@@ -39,6 +40,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
   const [showCheckout, setShowCheckout] = useState(false);
   const [showOrderTypeModal, setShowOrderTypeModal] = useState(false);
   const [orderType, setOrderType] = useState<'delivery' | 'collection'>('delivery');
+  const [itemWithOptions, setItemWithOptions] = useState<MenuItem | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -48,12 +50,28 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
   }, []);
 
   const handleAddToCart = (item: MenuItem) => {
+    if (item.options && item.options.length > 0) {
+      setItemWithOptions(item);
+      setSelectedItem(null); // Close detail modal if open
+      return;
+    }
+    addItemToCart(item);
+  };
+
+  const addItemToCart = (item: MenuItem, selectedOptions?: Record<string, string>) => {
     setCart((prev) => {
-      const existing = prev.find((c) => c.id === item.id);
+      const existing = prev.find((c) => 
+        c.id === item.id && 
+        JSON.stringify(c.selectedOptions) === JSON.stringify(selectedOptions)
+      );
       if (existing) {
-        return prev.map((c) => (c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c));
+        return prev.map((c) => (
+          c.id === item.id && JSON.stringify(c.selectedOptions) === JSON.stringify(selectedOptions) 
+            ? { ...c, quantity: c.quantity + 1 } 
+            : c
+        ));
       }
-      return [...prev, { ...item, quantity: 1 }];
+      return [...prev, { ...item, quantity: 1, selectedOptions }];
     });
 
     // Add toast
@@ -70,10 +88,17 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
     }
   };
 
-  const handleUpdateQuantity = (id: string, delta: number) => {
+  const handleConfirmOptions = (options: Record<string, string>) => {
+    if (itemWithOptions) {
+      addItemToCart(itemWithOptions, options);
+      setItemWithOptions(null);
+    }
+  };
+
+  const handleUpdateQuantity = (index: number, delta: number) => {
     setCart((prev) => {
-      return prev.map((c) => {
-        if (c.id === id) {
+      return prev.map((c, i) => {
+        if (i === index) {
           return { ...c, quantity: Math.max(0, c.quantity + delta) };
         }
         return c;
@@ -152,7 +177,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
       </div>
 
       {/* Mobile Cart Bouncing Banner */}
-      {cart.length > 0 && (
+      {cart.length > 0 && !isCartOpen && (
         <div key={toastKey} className={styles.mobileCartBanner} onClick={() => setIsCartOpen(true)}>
           {/* Item Thumbnails */}
           <div className={styles.mobileCartThumbsWrap}>
@@ -305,6 +330,14 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
         <OrderTypeModal 
           onSelectType={handleOrderTypeSelected}
           onClose={() => setShowOrderTypeModal(false)}
+        />
+      )}
+
+      {itemWithOptions && (
+        <ItemOptionsModal
+          item={itemWithOptions}
+          onConfirm={handleConfirmOptions}
+          onClose={() => setItemWithOptions(null)}
         />
       )}
     </div>
