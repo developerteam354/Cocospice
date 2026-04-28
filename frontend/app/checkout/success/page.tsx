@@ -10,13 +10,17 @@ export default function SuccessPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [showDetails, setShowDetails] = useState(false);
+  const [orderId, setOrderId] = useState<string>('');
 
   useEffect(() => {
+    // Generate order ID on client side to prevent hydration mismatch
+    setOrderId(`CS-${Math.floor(1000 + Math.random() * 9000)}`);
+
     // Reveal details after the complex packing & dispatch sequence
     const timer = setTimeout(() => {
       setShowDetails(true);
-      // Play a premium success sound
-      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3');
+      // Play a 'Tada' win sound
+      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3');
       audio.volume = 0.4;
       audio.play().catch(err => console.log('Audio play failed:', err));
     }, 5500);
@@ -92,19 +96,19 @@ export default function SuccessPage() {
               ))}
             </div>
           )}
-          
+
           <div className={styles.staggeredContent}>
             <div className={styles.successIcon} style={{ '--order': 1 } as any}>✨</div>
             <h1 className={styles.title} style={{ '--order': 2 } as any}>Order Confirmed!</h1>
             <p className={styles.message} style={{ '--order': 3 } as any}>
-              Thank you for choosing <strong>CocoSpice</strong>, {user?.name.split(' ')[0] || 'Guest'}! 
+              Thank you for choosing <strong>CocoSpice</strong>, {user?.name.split(' ')[0] || 'Guest'}!
               Your order is now on its way.
             </p>
 
             <div className={styles.orderInfo} style={{ '--order': 4 } as any}>
               <div className={styles.infoRow}>
                 <span>Order Number:</span>
-                <strong>#CS-{Math.floor(1000 + Math.random() * 9000)}</strong>
+                <strong>#{orderId || '...'}</strong>
               </div>
               <div className={styles.infoRow}>
                 <span>Estimated Time:</span>
