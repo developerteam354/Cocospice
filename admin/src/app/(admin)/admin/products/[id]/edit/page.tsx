@@ -1,14 +1,17 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ChefHat, Plus, X } from 'lucide-react';
+import { ArrowLeft, ChefHat, Plus, X, Loader2 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import type { RootState } from '@/store/store';
+import { fetchProductById, updateProduct } from '@/store/slices/productSlice';
 import productService from '@/services/productService';
 import type { IProductCategory } from '@/types/product';
 import Input from '@/components/ui/Input';
@@ -34,12 +37,20 @@ type FormData = z.infer<typeof schema>;
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function CreateProductPage() {
+export default function EditProductPage() {
   const router = useRouter();
+  const params = useParams();
+  const dispatch = useAppDispatch();
+  const productId = params.id as string;
+
+  const { currentProduct, currentProductLoading, loading } = useAppSelector(
+    (state: RootState) => state.products
+  );
+
   const [categories, setCategories]   = useState<IProductCategory[]>([]);
-  const [submitting, setSubmitting]   = useState(false);
   const [thumbnail, setThumbnail]     = useState<IUploadedAsset[]>([]);
   const [gallery, setGallery]         = useState<IUploadedAsset[]>([]);
+  const [dataLoaded, setDataLoaded]   = useState(false);
 
   // Refs for extra option input
   const optionNameRef = useRef<HTMLInputElement>(null);
@@ -47,7 +58,7 @@ export default function CreateProductPage() {
   const isUploading = thumbnail.some((a) => a.uploading) || gallery.some((a) => a.uploading);
 
   const {
-    register, handleSubmit, watch, setValue, control,
+    register, handleSubmit, watch, setValue, control, reset,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -66,9 +77,44 @@ export default function CreateProductPage() {
     ? (priceNum - (priceNum * offerNum) / 100).toFixed(2)
     : priceNum.toFixed(2);
 
+  // Fetch product data and categories
   useEffect(() => {
+    dispatch(fetchProductById(productId));
     productService.getCategories().then(setCategories).catch(() => {});
-  }, []);
+  }, [dispatch, productId]);
+
+  // Pre-fill form when product data loads
+  useEffect(() => {
+    if (currentProduct && !dataLoaded) {
+      reset({
+        name: currentProduct.name,
+        description: currentProduct.description,
+        ingredients: currentProduct.ingredients?.join(', ') ?? '',
+        price: String(currentProduct.price),
+        offerPercentage: String(currentProduct.offerPercentage ?? 0),
+        stock: String(currentProduct.stock ?? 0),
+        category: typeof currentProduct.category === 'object' 
+          ? currentProduct.category._id 
+          : currentProduct.category,
+        isVeg: currentProduct.isVeg,
+        isAvailable: currentProduct.isAvailable,
+        extraOptions: currentProduct.extraOptions ?? [],
+      });
+
+      // Set existing images
+      if (currentProduct.thumbnail) {
+        setThumbnail([{ 
+          url: currentProduct.thumbnail.url, 
+          key: currentProduct.thumbnail.key 
+        }]);
+      }
+      if (currentProduct.gallery && currentProduct.gallery.length > 0) {
+        setGallery(currentProduct.gallery.map(g => ({ url: g.url, key: g.key })));
+      }
+
+      setDataLoaded(true);
+    }
+  }, [currentProduct, dataLoaded, reset]);
 
   // ─── Extra Option helpers ────────────────────────────────────────────────────
 
@@ -102,6 +148,8 @@ export default function CreateProductPage() {
     const placeholders: IUploadedAsset[] = files.map(() => ({ url: '', key: '', uploading: true }));
     setter((prev) => [...prev, ...placeholders]);
 
+    const uploadToast = toast.loading('Uploading to S3...');
+
     await Promise.all(
       files.map(async (file, i) => {
         try {
@@ -121,6 +169,8 @@ export default function CreateProductPage() {
         }
       })
     );
+
+    toast.success('Images uploaded to S3', { id: uploadToast });
   };
 
   const handleThumbnail  = (files: File[]) => uploadFiles(files.slice(0, 1), setThumbnail, 'products/thumbnails');
@@ -144,36 +194,62 @@ export default function CreateProductPage() {
     const readyThumbnail = thumbnail.find((a) => !a.uploading);
     if (!readyThumbnail) { toast.error('Thumbnail is required'); return; }
 
-    setSubmitting(true);
-    const toastId = toast.loading('Creating product...');
+    const updateToast = toast.loading('Updating database...');
 
     try {
-      await productService.create({
-        name:            data.name,
-        description:     data.description,
-        ingredients:     data.ingredients
-          ? data.ingredients.split(',').map((s) => s.trim()).filter(Boolean)
-          : [],
-        isVeg:           data.isVeg,
-        price:           parseFloat(data.price),
-        offerPercentage: parseFloat(data.offerPercentage ?? '0') || 0,
-        stock:           parseInt(data.stock ?? '0', 10) || 0,
-        isAvailable:     data.isAvailable,
-        category:        data.category,
-        extraOptions:    data.extraOptions, // string[]
-        thumbnail:       { url: readyThumbnail.url, key: readyThumbnail.key },
-        gallery:         gallery.filter((a) => !a.uploading).map(({ url, key }) => ({ url, key })),
-      });
+      await dispatch(updateProduct({
+        id: productId,
+        payload: {
+          name:            data.name,
+          description:     data.description,
+          ingredients:     data.ingredients
+            ? data.ingredients.split(',').map((s) => s.trim()).filter(Boolean)
+            : [],
+          isVeg:           data.isVeg,
+          price:           parseFloat(data.price),
+          offerPercentage: parseFloat(data.offerPercentage ?? '0') || 0,
+          stock:           parseInt(data.stock ?? '0', 10) || 0,
+          isAvailable:     data.isAvailable,
+          category:        data.category,
+          extraOptions:    data.extraOptions,
+          thumbnail:       { url: readyThumbnail.url, key: readyThumbnail.key },
+          gallery:         gallery.filter((a) => !a.uploading).map(({ url, key }) => ({ url, key })),
+        },
+      })).unwrap();
 
-      toast.success('Product created!', { id: toastId });
+      toast.success('Product updated successfully!', { id: updateToast });
       router.push('/admin/products');
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to create product';
-      toast.error(msg, { id: toastId });
-    } finally {
-      setSubmitting(false);
+      const msg = err instanceof Error ? err.message : 'Failed to update product';
+      toast.error(msg, { id: updateToast });
     }
   };
+
+  // ─── Loading State ───────────────────────────────────────────────────────────
+
+  if (currentProductLoading || !dataLoaded) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-indigo-950/30 to-slate-900">
+        <div className="text-center">
+          <Loader2 size={48} className="mx-auto mb-4 animate-spin text-indigo-400" />
+          <p className="text-lg text-slate-400">Loading product...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentProduct) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-indigo-950/30 to-slate-900">
+        <div className="text-center">
+          <p className="text-lg text-red-400">Product not found</p>
+          <Button onClick={() => router.push('/admin/products')} className="mt-4">
+            Back to Products
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // ─── Render ──────────────────────────────────────────────────────────────────
 
@@ -198,8 +274,8 @@ export default function CreateProductPage() {
                 <ChefHat size={20} className="text-indigo-400" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">Add New Product</h1>
-                <p className="text-xs text-slate-400">Images upload instantly — submit when ready</p>
+                <h1 className="text-xl font-bold text-white">Edit Product</h1>
+                <p className="text-xs text-slate-400">Update product details and images</p>
               </div>
             </div>
           </motion.div>
@@ -359,8 +435,8 @@ export default function CreateProductPage() {
             </section>
 
             {/* ── Submit ── */}
-            <Button type="submit" loading={submitting} disabled={isUploading} className="w-full">
-              {isUploading ? 'Waiting for uploads...' : 'Create Product'}
+            <Button type="submit" loading={loading} disabled={isUploading} className="w-full">
+              {isUploading ? 'Waiting for uploads...' : 'Update Product'}
             </Button>
 
           </motion.form>

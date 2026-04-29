@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Clock, XCircle, Search, Eye } from 'lucide-react';
@@ -66,6 +67,7 @@ const rowVariants = {
 // ─── Main Page Component ──────────────────────────────────────────────────────
 
 export default function OrdersPage() {
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const { orders, stats, loading, statsLoading } = useAppSelector(
     (state: RootState) => state.orders
@@ -322,7 +324,7 @@ export default function OrdersPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end">
                           <button
-                            onClick={() => alert(`View details for ${order.orderId}`)}
+                            onClick={() => router.push(`/admin/orders/${order._id}`)}
                             title="View Details"
                             className="rounded-lg p-2 text-slate-400 hover:bg-indigo-500/20 hover:text-indigo-400 transition-colors"
                           >

@@ -1,7 +1,6 @@
 'use client';
 
 import { useRef } from 'react';
-import Image from 'next/image';
 import { Upload, X, Loader2 } from 'lucide-react';
 
 export interface IUploadedAsset {
@@ -48,7 +47,12 @@ export default function ImageUpload({
               </div>
             ) : (
               <>
-                <Image src={asset.url} alt={`upload-${i}`} fill className="object-cover" sizes="96px" />
+                {/* Use regular img tag for S3 images to avoid Next.js optimization issues */}
+                <img 
+                  src={asset.url} 
+                  alt={`upload-${i}`} 
+                  className="h-full w-full object-cover"
+                />
                 <button
                   type="button"
                   onClick={() => onRemove(i)}

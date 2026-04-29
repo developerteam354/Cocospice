@@ -3,6 +3,7 @@ import authReducer from './slices/authSlice';
 import productReducer from './slices/productSlice';
 import categoryReducer from './slices/categorySlice';
 import orderReducer from './slices/orderSlice';
+import userReducer from './slices/userSlice';
 import { injectStore } from '@/services/api';
 
 export const store = configureStore({
@@ -11,6 +12,7 @@ export const store = configureStore({
     products: productReducer,
     category: categoryReducer,
     orders: orderReducer,
+    users: userReducer,
   },
 });
 

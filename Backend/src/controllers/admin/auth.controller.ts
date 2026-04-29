@@ -68,4 +68,37 @@ export const authController = {
       next(err);
     }
   },
+
+  updateProfile: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      console.log('[Auth] updateProfile — Request body:', req.body);
+      console.log('[Auth] updateProfile — Admin ID:', req.admin?._id);
+      
+      const adminId = req.admin?._id.toString();
+      if (!adminId) {
+        console.error('[Auth] updateProfile — No admin ID found');
+        res.status(401).json({ message: 'Unauthorized' });
+        return;
+      }
+
+      const { fullName, profileImage } = req.body as { fullName?: string; profileImage?: string };
+      
+      console.log('[Auth] updateProfile — Updating with:', { fullName, profileImage });
+      
+      const updatedAdmin = await authService.updateProfile(adminId, { fullName, profileImage });
+      
+      if (!updatedAdmin) {
+        console.error('[Auth] updateProfile — Admin not found');
+        res.status(404).json({ message: 'Admin not found' });
+        return;
+      }
+
+      const { password: _, refreshToken: __, ...adminData } = updatedAdmin.toObject();
+      console.log('[Auth] updateProfile — Success, returning:', adminData);
+      res.status(200).json({ admin: adminData, message: 'Profile updated successfully' });
+    } catch (err) {
+      console.error('[Auth] updateProfile — Error:', err);
+      next(err);
+    }
+  },
 };

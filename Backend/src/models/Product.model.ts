@@ -4,12 +4,7 @@ import { Schema, model, type Document, type Types } from 'mongoose';
 
 export interface IImageAsset {
   url: string;
-  key: string; // S3 object key
-}
-
-export interface IExtraOption {
-  name: string;
-  price: number;
+  key: string; // S3 object key;
 }
 
 export interface IRatings {
@@ -43,7 +38,7 @@ export interface IProduct extends Document {
   // Stats
   ratings: IRatings;
   soldCount: number;
-  extraOptions: IExtraOption[];
+  extraOptions: string[];
 
   // Timestamps (injected by mongoose)
   createdAt: Date;
@@ -56,14 +51,6 @@ const imageAssetSchema = new Schema<IImageAsset>(
   {
     url: { type: String, required: true },
     key: { type: String, required: true },
-  },
-  { _id: false }
-);
-
-const extraOptionSchema = new Schema<IExtraOption>(
-  {
-    name:  { type: String, required: true, trim: true },
-    price: { type: Number, required: true, min: 0 },
   },
   { _id: false }
 );
@@ -107,7 +94,7 @@ const productSchema = new Schema<IProduct>(
     // Stats
     ratings:      { type: ratingsSchema, default: () => ({ average: 0, count: 0 }) },
     soldCount:    { type: Number, default: 0, min: 0 },
-    extraOptions: { type: [extraOptionSchema], default: [] },
+    extraOptions: { type: [String], default: [] },
   },
   { timestamps: true }
 );

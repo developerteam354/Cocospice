@@ -10,8 +10,23 @@ export const productService = {
     return productRepository.findWithFilters(filter);
   },
 
+  getById: async (id: string): Promise<IProduct | null> => {
+    return productRepository.findById(id);
+  },
+
   getStats: async () => {
     return productRepository.getStats();
+  },
+
+  update: async (id: string, input: Partial<ICreateProductInput>): Promise<IProduct | null> => {
+    // Fetch old product to get old image keys
+    const oldProduct = await productRepository.findById(id);
+    if (!oldProduct) return null;
+
+    const oldThumbnailKey = oldProduct.thumbnail?.key;
+    const oldGalleryKeys = oldProduct.gallery?.map(g => g.key) ?? [];
+
+    return productRepository.updateProduct(id, input, oldThumbnailKey, oldGalleryKeys);
   },
 
   toggleAvailability: async (id: string, isAvailable: boolean): Promise<IProduct | null> => {

@@ -6,12 +6,13 @@ import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Package, Tag, Users, ShoppingCart,
-  UserCircle, LogOut, ChevronRight, X, Menu,
+  UserCircle, LogOut, ChevronLeft, ChevronRight, X,
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store/store';
 import { logoutAdmin } from '@/store/slices/authSlice';
 import { useRouter } from 'next/navigation';
+import { toProxyUrl } from '@/services/productService';
 
 const NAV_ITEMS = [
   { label: 'Dashboard',  href: '/admin/dashboard',  icon: LayoutDashboard },
@@ -36,44 +37,84 @@ export default function AdminSidebar({
   const dispatch  = useAppDispatch();
   const router    = useRouter();
   const admin     = useAppSelector((s: RootState) => s.auth.admin);
+  
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const handleLogout = async () => {
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleLogoutConfirm = async () => {
+    setShowLogoutModal(false);
     await dispatch(logoutAdmin());
     router.replace('/admin/login');
   };
 
+  const handleLogoutCancel = () => {
+    setShowLogoutModal(false);
+  };
+
   const sidebarContent = (
     <div className="flex h-full flex-col">
-      {/* Logo */}
-      <div className="flex h-16 items-center gap-3 border-b border-white/10 px-4">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-600">
-          <span className="text-sm font-bold text-white">C</span>
+      {/* Admin Profile Header - Clickable to toggle */}
+      <div 
+        className="relative flex items-center gap-3 border-b border-white/10 px-4 py-4 transition-colors"
+      >
+        {/* Profile Image - Always visible, clickable */}
+        <div 
+          className={`relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-indigo-500/30 bg-indigo-600/20 cursor-pointer hover:border-indigo-500/50 transition-all ${collapsed ? 'mx-auto' : ''}`}
+          onClick={onToggle}
+          title={collapsed ? 'Click to expand sidebar' : 'Click to collapse sidebar'}
+        >
+          {admin?.profileImage ? (
+            <img
+              src={toProxyUrl(admin.profileImage)}
+              alt={admin.fullName}
+              className="h-full w-full object-cover"
+              onError={(e) => {
+                // Fallback to initials on error
+                const target = e.currentTarget;
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent) {
+                  parent.innerHTML = `<span class="text-sm font-bold text-indigo-300">${admin?.fullName?.[0]?.toUpperCase() ?? 'A'}</span>`;
+                }
+              }}
+            />
+          ) : (
+            <span className="text-sm font-bold text-indigo-300">
+              {admin?.fullName?.[0]?.toUpperCase() ?? 'A'}
+            </span>
+          )}
         </div>
+        
+        {/* Name and Role - Hidden when collapsed */}
         <AnimatePresence>
           {!collapsed && (
-            <motion.span
+            <motion.div
               initial={{ opacity: 0, width: 0 }}
               animate={{ opacity: 1, width: 'auto' }}
               exit={{ opacity: 0, width: 0 }}
-              className="overflow-hidden whitespace-nowrap text-sm font-bold text-white"
+              transition={{ duration: 0.2 }}
+              className="flex-1 overflow-hidden"
             >
-              Cocospice Admin
-            </motion.span>
+              <p className="whitespace-nowrap text-sm font-semibold text-white truncate">
+                {admin?.fullName ?? 'Admin'}
+              </p>
+              <p className="whitespace-nowrap text-xs text-slate-400 capitalize">
+                {admin?.role ?? 'Administrator'}
+              </p>
+            </motion.div>
           )}
         </AnimatePresence>
-        {/* Desktop collapse toggle */}
+        
+        {/* Mobile close button - Always visible on mobile */}
         <button
-          onClick={onToggle}
-          className="ml-auto hidden rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors lg:flex"
-        >
-          <motion.div animate={{ rotate: collapsed ? 0 : 180 }} transition={{ duration: 0.2 }}>
-            <ChevronRight size={16} />
-          </motion.div>
-        </button>
-        {/* Mobile close */}
-        <button
-          onClick={onMobileClose}
-          className="ml-auto rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors lg:hidden"
+          onClick={(e) => {
+            e.stopPropagation();
+            onMobileClose();
+          }}
+          className="lg:hidden shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
         >
           <X size={16} />
         </button>
@@ -119,28 +160,10 @@ export default function AdminSidebar({
         })}
       </nav>
 
-      {/* Admin profile + logout */}
-      <div className="border-t border-white/10 p-3 space-y-1">
-        <div className={`flex items-center gap-3 rounded-xl px-3 py-2 ${collapsed ? 'justify-center' : ''}`}>
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-600/30 text-xs font-bold text-indigo-300">
-            {admin?.fullName?.[0]?.toUpperCase() ?? 'A'}
-          </div>
-          <AnimatePresence>
-            {!collapsed && (
-              <motion.div
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: 'auto' }}
-                exit={{ opacity: 0, width: 0 }}
-                className="overflow-hidden"
-              >
-                <p className="whitespace-nowrap text-xs font-medium text-white">{admin?.fullName}</p>
-                <p className="whitespace-nowrap text-xs text-slate-500">{admin?.role}</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+      {/* Sign Out Button - Bottom */}
+      <div className="border-t border-white/10 p-3">
         <button
-          onClick={handleLogout}
+          onClick={handleLogoutClick}
           className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all"
         >
           <LogOut size={18} className="shrink-0" />
@@ -152,7 +175,7 @@ export default function AdminSidebar({
                 exit={{ opacity: 0, width: 0 }}
                 className="overflow-hidden whitespace-nowrap"
               >
-                Logout
+                Sign Out
               </motion.span>
             )}
           </AnimatePresence>
@@ -163,14 +186,25 @@ export default function AdminSidebar({
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <motion.aside
-        animate={{ width: collapsed ? 68 : 240 }}
-        transition={{ duration: 0.25, ease: 'easeInOut' }}
-        className="hidden lg:flex flex-col shrink-0 border-r border-white/10 bg-slate-900/80 backdrop-blur-xl overflow-hidden"
-      >
-        {sidebarContent}
-      </motion.aside>
+      {/* Desktop sidebar with toggle arrow */}
+      <div className="hidden lg:block relative shrink-0">
+        <motion.aside
+          animate={{ width: collapsed ? 68 : 240 }}
+          transition={{ duration: 0.25, ease: 'easeInOut' }}
+          className="flex flex-col h-full border-r border-white/10 bg-slate-900/80 backdrop-blur-xl"
+        >
+          {sidebarContent}
+        </motion.aside>
+        
+        {/* Dedicated Toggle Arrow - Positioned outside sidebar, glassmorphic theme */}
+        <button
+          onClick={onToggle}
+          className="absolute top-20 -right-3.5 z-[100] w-7 h-7 rounded-full bg-[#1E2EDE]/20 border border-[#1E2EDE]/40 text-[#1E2EDE] flex items-center justify-center backdrop-blur-sm hover:bg-[#1E2EDE] hover:text-white transition-all duration-200 shadow-lg"
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
+      </div>
 
       {/* Mobile overlay */}
       <AnimatePresence>
@@ -188,6 +222,66 @@ export default function AdminSidebar({
             >
               {sidebarContent}
             </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutModal && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleLogoutCancel}
+              className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md"
+            />
+
+            {/* Modal */}
+            <div className="fixed inset-0 z-[101] flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-900/95 backdrop-blur-xl p-8 shadow-2xl"
+              >
+                <div className="text-center">
+                  {/* Icon */}
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/20 border border-red-500/30">
+                    <LogOut size={32} className="text-red-400" />
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="mb-2 text-2xl font-bold text-white">
+                    Sign Out?
+                  </h3>
+
+                  {/* Description */}
+                  <p className="mb-8 text-slate-400">
+                    Are you sure you want to sign out of your account?
+                  </p>
+
+                  {/* Buttons */}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleLogoutCancel}
+                      className="flex-1 rounded-xl border border-white/10 bg-white/5 px-6 py-3 font-semibold text-white transition-all hover:bg-white/10"
+                    >
+                      No, Stay
+                    </button>
+                    <button
+                      onClick={handleLogoutConfirm}
+                      className="flex-1 rounded-xl bg-red-600 px-6 py-3 font-semibold text-white shadow-lg shadow-red-600/30 transition-all hover:bg-red-700 hover:shadow-xl"
+                    >
+                      Yes, Logout
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
           </>
         )}
       </AnimatePresence>

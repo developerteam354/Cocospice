@@ -14,9 +14,13 @@ const upload = multer({
 
 const router = Router();
 
-router.use(protect);
+// Public image proxy — no auth needed, key is an unguessable UUID
+// e.g. GET /api/admin/upload/image?key=products%2Fuuid.jpg
+router.get('/image', uploadController.proxyImage);
 
-router.post('/',       upload.single('image'), uploadController.uploadImage);
-router.delete('/',     uploadController.deleteImage);
+// All other upload routes require authentication
+router.use(protect);
+router.post('/',   upload.single('image'), uploadController.uploadImage);
+router.delete('/', uploadController.deleteImage);
 
 export default router;

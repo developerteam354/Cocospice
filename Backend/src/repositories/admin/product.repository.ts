@@ -1,4 +1,4 @@
-import { Product, type IProduct, type IExtraOption, type IImageAsset } from '../../models/Product.model.js';
+import { Product, type IProduct, type IImageAsset } from '../../models/Product.model.js';
 import { BaseRepository } from '../base.repository.js';
 import { deleteFromS3 } from '../../utils/s3.utils.js';
 
@@ -12,7 +12,7 @@ export interface ICreateProductInput {
   stock: number;
   isAvailable: boolean;
   category: string;
-  extraOptions: IExtraOption[];
+  extraOptions: string[];
   thumbnail: IImageAsset;   // pre-uploaded S3 asset
   gallery: IImageAsset[];   // pre-uploaded S3 assets
 }
@@ -29,6 +29,43 @@ export class ProductRepository extends BaseRepository<IProduct> {
         : input.price;
 
     return Product.create({ ...input, finalPrice });
+  }
+
+  async updateProduct(id: string, input: Partial<ICreateProductInput>, oldThumbnailKey?: string, oldGalleryKeys?: string[]): Promise<IProduct | null> {
+    // Calculate final price if price or offer changed
+    let finalPrice: number | undefined;
+    if (input.price !== undefined || input.offerPercentage !== undefined) {
+      const price = input.price ?? 0;
+      const offer = input.offerPercentage ?? 0;
+      finalPrice = offer > 0
+        ? parseFloat((price - (price * offer) / 100).toFixed(2))
+        : price;
+    }
+
+    // Delete old S3 images if new ones are provided
+    const deletePromises: Promise<void>[] = [];
+    
+    if (input.thumbnail && oldThumbnailKey && oldThumbnailKey !== input.thumbnail.key) {
+      deletePromises.push(deleteFromS3(oldThumbnailKey));
+    }
+    
+    if (input.gallery && oldGalleryKeys && oldGalleryKeys.length > 0) {
+      const newKeys = input.gallery.map(g => g.key);
+      const keysToDelete = oldGalleryKeys.filter(k => !newKeys.includes(k));
+      deletePromises.push(...keysToDelete.map(deleteFromS3));
+    }
+
+    if (deletePromises.length > 0) {
+      await Promise.allSettled(deletePromises);
+    }
+
+    const updateData = finalPrice !== undefined 
+      ? { ...input, finalPrice }
+      : input;
+
+    return Product.findByIdAndUpdate(id, updateData, { new: true })
+      .populate('category', 'name')
+      .exec();
   }
 
   async deleteWithImages(id: string): Promise<void> {

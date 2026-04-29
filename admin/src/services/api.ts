@@ -58,6 +58,12 @@ privateApi.interceptors.request.use(
   (config) => {
     const token = store?.getState().auth.token;
     if (token) config.headers.Authorization = `Bearer ${token}`;
+    
+    // If sending FormData, remove Content-Type to let browser set it with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+    
     return config;
   },
   (error) => Promise.reject(error)

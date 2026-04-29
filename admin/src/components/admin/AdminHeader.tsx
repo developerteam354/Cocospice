@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Menu, Bell, ChevronRight } from 'lucide-react';
 import { useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store/store';
+import { toProxyUrl } from '@/services/productService';
+import Image from 'next/image';
 
 interface AdminHeaderProps {
   onMobileMenuOpen: () => void;
@@ -61,8 +62,25 @@ export default function AdminHeader({ onMobileMenuOpen }: AdminHeaderProps) {
         </button>
 
         <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600/30 text-xs font-bold text-indigo-300">
-            {admin?.fullName?.[0]?.toUpperCase() ?? 'A'}
+          <div className="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-600/30 text-xs font-bold text-indigo-300">
+            {admin?.profileImage ? (
+              <img
+                src={toProxyUrl(admin.profileImage)}
+                alt={admin.fullName}
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  // Fallback to initials on error
+                  const target = e.currentTarget;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    parent.innerHTML = `<span class="text-xs font-bold text-indigo-300">${admin?.fullName?.[0]?.toUpperCase() ?? 'A'}</span>`;
+                  }
+                }}
+              />
+            ) : (
+              <span>{admin?.fullName?.[0]?.toUpperCase() ?? 'A'}</span>
+            )}
           </div>
           <span className="hidden text-sm font-medium text-white sm:block">
             {admin?.fullName ?? 'Admin'}

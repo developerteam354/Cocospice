@@ -1,4 +1,5 @@
-import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { getS3Client, getS3Bucket } from '../config/s3.config.js';
 import { randomUUID } from 'crypto';
 import path from 'path';
@@ -37,6 +38,29 @@ export const uploadToS3 = async (
   const url = `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
   console.log(`[S3] Upload success → ${url}`);
   return { url, key };
+};
+
+/**
+ * Generate a short-lived pre-signed URL for a private S3 object.
+ * Default expiry: 1 hour (3600 seconds).
+ */
+export const getSignedImageUrl = async (
+  key: string,
+  expiresIn = 3600
+): Promise<string> => {
+  const bucket = getS3Bucket();
+  const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+  return getSignedUrl(getS3Client(), command, { expiresIn });
+};
+
+/**
+ * Stream an S3 object directly — used by the image-proxy endpoint.
+ * Returns the raw GetObjectCommandOutput so the controller can pipe Body.
+ */
+export const getS3Object = async (key: string) => {
+  const bucket = getS3Bucket();
+  const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+  return getS3Client().send(command);
 };
 
 export const deleteFromS3 = async (key: string): Promise<void> => {

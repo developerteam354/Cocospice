@@ -79,4 +79,11 @@ export const authService = {
   logout: async (adminId: string): Promise<void> => {
     await authRepository.updateRefreshToken(adminId, null);
   },
+
+  updateProfile: async (
+    adminId: string,
+    updates: { fullName?: string; profileImage?: string }
+  ): Promise<IAdmin | null> => {
+    return authRepository.updateProfile(adminId, updates);
+  },
 };

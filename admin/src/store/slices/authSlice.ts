@@ -56,6 +56,21 @@ export const logoutAdmin = createAsyncThunk<void>(
   }
 );
 
+export const updateProfile = createAsyncThunk<
+  IAdmin,
+  { fullName?: string; profileImage?: string }
+>(
+  'auth/updateProfile',
+  async (updates, { rejectWithValue }) => {
+    try {
+      const { admin } = await authService.updateProfile(updates);
+      return admin;
+    } catch (err: unknown) {
+      return rejectWithValue(err instanceof Error ? err.message : 'Failed to update profile');
+    }
+  }
+);
+
 // ─── Initial State ────────────────────────────────────────────────────────────
 
 const initialState: IAuthState = {
@@ -156,6 +171,21 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
     });
+
+    // ── updateProfile ────────────────────────────────────────────────────────
+    builder
+      .addCase(updateProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateProfile.fulfilled, (state, action: PayloadAction<IAdmin>) => {
+        state.loading = false;
+        state.admin = action.payload;
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
   },
 });
 

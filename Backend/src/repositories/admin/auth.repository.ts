@@ -17,6 +17,17 @@ export class AuthRepository extends BaseRepository<IAdmin> {
   async findByRefreshToken(token: string): Promise<IAdmin | null> {
     return Admin.findOne({ refreshToken: token }).exec();
   }
+
+  async updateProfile(
+    id: string,
+    updates: { fullName?: string; profileImage?: string }
+  ): Promise<IAdmin | null> {
+    const updateData: Record<string, unknown> = {};
+    if (updates.fullName !== undefined) updateData.fullName = updates.fullName;
+    if (updates.profileImage !== undefined) updateData.profileImage = updates.profileImage;
+
+    return Admin.findByIdAndUpdate(id, updateData, { new: true }).exec();
+  }
 }
 
 export const authRepository = new AuthRepository();

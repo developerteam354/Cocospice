@@ -38,6 +38,13 @@ const authService = {
     await privateApi.post('/auth/logout');
     tokenCookie.remove();
   },
+
+  updateProfile: async (updates: { fullName?: string; profileImage?: string }): Promise<{ admin: IAdmin; message: string }> => {
+    console.log('[AuthService] updateProfile called with:', updates);
+    const { data } = await privateApi.patch<{ admin: IAdmin; message: string }>('/auth/profile', updates);
+    console.log('[AuthService] updateProfile response:', data);
+    return data;
+  },
 };
 
 export default authService;

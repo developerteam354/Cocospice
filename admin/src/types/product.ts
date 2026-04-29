@@ -1,8 +1,3 @@
-export interface IExtraOption {
-  name: string;
-  price: number;
-}
-
 export interface IImageAsset {
   url: string;
   key: string;
@@ -29,7 +24,7 @@ export interface IProduct {
   category: IProductCategory;
   ratings: { average: number; count: number };
   soldCount: number;
-  extraOptions: IExtraOption[];
+  extraOptions: string[];
   createdAt: string;
   updatedAt: string;
 }

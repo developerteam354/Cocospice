@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { productService } from '../../services/admin/product.service.js';
-import type { IImageAsset, IExtraOption } from '../../models/Product.model.js';
+import type { IImageAsset } from '../../models/Product.model.js';
 
 interface ICreateProductBody {
   name: string;
@@ -12,7 +12,7 @@ interface ICreateProductBody {
   category: string;
   isVeg?: boolean;
   ingredients?: string[];
-  extraOptions?: IExtraOption[];
+  extraOptions?: string[];
   thumbnail: IImageAsset;
   gallery?: IImageAsset[];
 }
@@ -88,6 +88,30 @@ export const productController = {
       const product = await productService.toggleAvailability(id, isAvailable);
       if (!product) { res.status(404).json({ message: 'Product not found' }); return; }
       res.status(200).json({ product, message: 'Visibility updated' });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  getById: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const product = await productService.getById(req.params.id);
+      if (!product) { res.status(404).json({ message: 'Product not found' }); return; }
+      res.status(200).json({ product });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  update: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const body = req.body as Partial<ICreateProductBody>;
+
+      const product = await productService.update(id, body);
+      if (!product) { res.status(404).json({ message: 'Product not found' }); return; }
+      
+      res.status(200).json({ product, message: 'Product updated successfully' });
     } catch (err) {
       next(err);
     }
