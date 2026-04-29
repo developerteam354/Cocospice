@@ -336,3 +336,73 @@
   .input { padding: 10px 12px; font-size: 0.9rem; }
   .editBtn { padding: 6px 12px; font-size: 0.8rem; }
 }
+
+/* Address Page Specific Styles */
+.addressList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.addressCard {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.addressCard:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
+
+.addressDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.addressDetails p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.addressDetails p strong {
+  color: var(--text-primary);
+  font-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.defaultBadge {
+  background: var(--primary-color);
+  color: white;
+  font-size: 0.65rem;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.noAddresses {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  display: block;
+}
+

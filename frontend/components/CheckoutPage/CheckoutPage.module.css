@@ -852,6 +852,106 @@
   color: var(--primary-color, #059669);
 }
 
+/* Address Selection */
+.addressSelection {
+  margin-bottom: 24px;
+}
+
+.addressGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.addressOption {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1.5px solid rgba(0,0,0,0.08);
+  border-radius: 14px;
+  background: var(--surface-color, #fff);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.addressOption:hover {
+  border-color: var(--primary-color, #10b981);
+  background: rgba(16,185,129,0.02);
+}
+
+.addressOptionActive {
+  border-color: var(--primary-color, #10b981);
+  background: rgba(16,185,129,0.06);
+  box-shadow: 0 4px 12px rgba(16,185,129,0.08);
+}
+
+.addressCheck {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: #fff;
+  transition: all 0.2s;
+}
+
+.addressOptionActive .addressCheck {
+  background: var(--primary-color, #10b981);
+  border-color: var(--primary-color, #10b981);
+}
+
+.addressInfo {
+  flex: 1;
+}
+
+.addressLabel {
+  font-size: 0.9rem;
+  color: var(--text-primary, #111);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px !important;
+}
+
+.defaultBadge {
+  background: rgba(16,185,129,0.1);
+  color: var(--primary-color, #10b981);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.addressTextSmall {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #64748b);
+  margin: 0;
+}
+
+.subTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary, #111);
+  margin: 0 0 16px;
+}
+
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  color: var(--text-secondary, #64748b);
+  gap: 12px;
+}
+
 /* ═══════════════════════════════════════════
    Mobile
 ═══════════════════════════════════════════ */
