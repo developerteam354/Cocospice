@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import styles from './Header.module.css';
 
 interface HeaderProps {
@@ -10,22 +11,22 @@ interface HeaderProps {
   onOpenAuth: (mode: 'login' | 'signup') => void;
 }
 
-export default function Header({ cartCount, onOpenCart, onOpenAuth }: HeaderProps) {
+const Header: React.FC<HeaderProps> = ({ cartCount, onOpenCart, onOpenAuth }) => {
   const { user, logout } = useAuth();
-  const [showUserMenu, setShowUserMenu] = useState(false);
+  const router = useRouter();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setShowUserMenu(false);
       }
     };
-    if (showUserMenu) document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showUserMenu]);
+  }, []);
 
   const getInitials = (name: string) =>
     name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -46,20 +47,19 @@ export default function Header({ cartCount, onOpenCart, onOpenAuth }: HeaderProp
       <div className={styles.mainHeader}>
 
         {/* Logo */}
-        <a href="#" className={styles.logoArea}>
+        <a href="/" className={styles.logoArea}>
           <div className={styles.logoIcon}>🍛</div>
           <div className={styles.logoText}>
             <h1 className={styles.logo}>
               Coco<span className={styles.logoAccent}>spice</span>
             </h1>
-            <p className={styles.subtitle}>Britain&apos;s Premier Indian Cuisine</p>
+            <p className={styles.subtitle}> Indian Cuisine</p>
           </div>
         </a>
 
         {/* Desktop Nav */}
         <nav className={styles.nav}>
-          <a href="#" className={styles.active}>Home</a>
-          <a href="#">Menu</a>
+          <a href="/" className={styles.active}>Menu</a>
           <a href="#">About</a>
           <a href="#">Contact</a>
         </nav>
@@ -78,7 +78,13 @@ export default function Header({ cartCount, onOpenCart, onOpenAuth }: HeaderProp
             <div className={styles.userArea} ref={menuRef}>
               <button
                 className={styles.avatarBtn}
-                onClick={() => setShowUserMenu(!showUserMenu)}
+                onClick={() => {
+                  if (window.innerWidth <= 768) {
+                    router.push('/profile');
+                  } else {
+                    setShowUserMenu(!showUserMenu);
+                  }
+                }}
                 aria-label="User menu"
               >
                 <span className={styles.avatarCircle}>{getInitials(user.name)}</span>
@@ -94,19 +100,18 @@ export default function Header({ cartCount, onOpenCart, onOpenAuth }: HeaderProp
                     </div>
                   </div>
                   <div className={styles.dropdownDivider} />
-                  <button className={styles.dropdownItem} onClick={() => setShowUserMenu(false)}>
+                  <button 
+                    className={styles.dropdownItem} 
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      router.push('/profile');
+                    }}
+                  >
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                       <circle cx="8" cy="4.5" r="2.5" stroke="currentColor" strokeWidth="1.5" />
                       <path d="M2.5 13c0-2.5 2.2-4 5.5-4s5.5 1.5 5.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
-                    My Profile
-                  </button>
-                  <button className={styles.dropdownItem} onClick={() => setShowUserMenu(false)}>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-                      <path d="M2 6h12" stroke="currentColor" strokeWidth="1.5" />
-                    </svg>
-                    My Orders
+                    My Dashboard
                   </button>
                   <div className={styles.dropdownDivider} />
                   <button
@@ -147,12 +152,29 @@ export default function Header({ cartCount, onOpenCart, onOpenAuth }: HeaderProp
       {/* ── Mobile Dropdown Menu ── */}
       {showMobileMenu && (
         <nav className={styles.mobileNav} onClick={() => setShowMobileMenu(false)}>
-          <a href="#" className={styles.mobileNavLink}>🏠 Home</a>
-          <a href="#" className={styles.mobileNavLink}>🍽️ Menu</a>
+          <a href="/" className={styles.mobileNavLink}>🍽️ Menu</a>
+          {user && (
+            <>
+              <button className={styles.mobileNavLink} onClick={() => router.push('/profile')}>
+                👤 My Dashboard
+              </button>
+              <button className={styles.mobileNavLink} onClick={() => router.push('/profile/orders')}>
+                📦 My Orders
+              </button>
+              <button className={styles.mobileNavLink} onClick={() => router.push('/profile/address')}>
+                📍 Manage Address
+              </button>
+              <button className={`${styles.mobileNavLink} ${styles.logoutItem}`} onClick={() => logout()}>
+                🚪 Sign Out
+              </button>
+            </>
+          )}
           <a href="#" className={styles.mobileNavLink}>ℹ️ About</a>
           <a href="#" className={styles.mobileNavLink}>📞 Contact</a>
         </nav>
       )}
     </header>
   );
-}
+};
+
+export default Header;

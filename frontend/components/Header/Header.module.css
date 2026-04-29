@@ -8,6 +8,7 @@
   flex-direction: column;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
+  width: 100%;
 }
 
 .topBar {
@@ -19,6 +20,7 @@
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
   overflow: hidden;
   white-space: nowrap;
+  width: 100%;
 }
 
 .info {
@@ -29,13 +31,8 @@
 }
 
 @keyframes marquee {
-  0% {
-    transform: translateX(100vw);
-  }
-
-  100% {
-    transform: translateX(-100%);
-  }
+  0% { transform: translateX(100vw); }
+  100% { transform: translateX(-100%); }
 }
 
 .statusOpen {
@@ -52,15 +49,8 @@
 }
 
 @keyframes pulseBanner {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-  }
-
-  100% {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
-  }
+  0% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
+  100% { transform: scale(1.05); box-shadow: 0 0 20px rgba(255, 255, 255, 0.6); }
 }
 
 .mainHeader {
@@ -74,7 +64,24 @@
   gap: 20px;
 }
 
-/* ── Logo ─────────────────── */
+@media (max-width: 768px) {
+  .mainHeader {
+    padding: 10px 12px;
+    gap: 8px;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo { font-size: 1.2rem; }
+  .logoIcon { width: 32px; height: 32px; font-size: 1rem; }
+  .subtitle { display: none; }
+  .cartButton { padding: 6px 10px; font-size: 0.8rem; }
+  .avatarCircle { width: 32px; height: 32px; font-size: 0.75rem; }
+}
+
 .logoArea {
   display: flex;
   align-items: center;
@@ -93,13 +100,9 @@
   justify-content: center;
   font-size: 1.4rem;
   box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
-  flex-shrink: 0;
 }
 
-.logoText {
-  display: flex;
-  flex-direction: column;
-}
+.logoText { display: flex; flex-direction: column; }
 
 .logo {
   font-size: 1.7rem;
@@ -107,13 +110,10 @@
   margin: 0;
   color: #111827;
   line-height: 1;
-  font-family: "Baskerville", "Baskerville Old Face", "Hoefler Text", "Garamond", "Times New Roman", serif;
-  letter-spacing: -0.5px;
+  font-family: "Baskerville", serif;
 }
 
-.logoAccent {
-  color: var(--primary-color);
-}
+.logoAccent { color: var(--primary-color); }
 
 .subtitle {
   margin: 2px 0 0 0;
@@ -124,12 +124,7 @@
   font-weight: 600;
 }
 
-/* ── Nav ──────────────────── */
-.nav {
-  display: flex;
-  gap: 2px;
-  align-items: center;
-}
+.nav { display: flex; gap: 2px; align-items: center; }
 
 .nav a {
   color: #4b5563;
@@ -139,41 +134,14 @@
   padding: 8px 14px;
   border-radius: 10px;
   transition: all 0.2s ease;
-  position: relative;
-  letter-spacing: 0.2px;
 }
 
-.nav a::after {
-  content: '';
-  position: absolute;
-  bottom: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 2px;
-  background: var(--primary-color);
-  border-radius: 2px;
-  transition: width 0.25s ease;
-}
-
-.nav a:hover::after,
-.nav a.active::after {
-  width: 60%;
-}
-
-.nav a:hover,
-.nav a.active {
+.nav a:hover, .nav a.active {
   color: var(--primary-color);
   background: rgba(16, 185, 129, 0.06);
 }
 
-/* ── Actions ──────────────── */
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
+.actions { display: flex; align-items: center; gap: 10px; }
 
 .cartButton {
   position: relative;
@@ -188,15 +156,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.25s ease;
   box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
-  letter-spacing: 0.2px;
-}
-
-.cartButton:hover {
-  background: var(--primary-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
 }
 
 .badge {
@@ -216,7 +176,6 @@
   border: 2px solid #fff;
 }
 
-/* Sign In Button */
 .loginButton {
   display: flex;
   align-items: center;
@@ -230,30 +189,10 @@
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.25s ease;
-  letter-spacing: 0.2px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 
-.loginButton:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-  background: rgba(16, 185, 129, 0.04);
-  transform: translateY(-1px);
-}
-/* User Area & Avatar */
-.userArea {
-  position: relative;
-}
-
-.avatarBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-}
-
+.userArea { position: relative; }
+.avatarBtn { background: none; border: none; cursor: pointer; padding: 0; }
 .avatarCircle {
   width: 40px;
   height: 40px;
@@ -265,81 +204,39 @@
   justify-content: center;
   font-weight: 800;
   font-size: 0.85rem;
-  letter-spacing: 0.5px;
-  transition: all 0.3s ease;
   box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
   border: 2px solid #ffffff;
 }
 
-.avatarBtn:hover .avatarCircle {
-  transform: scale(1.1);
-  box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
-}
 
-/* User Dropdown */
 .userDropdown {
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
   width: 260px;
-  background: var(--surface-color);
+  background: white;
   border-radius: 16px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
   padding: 8px;
   z-index: 200;
-  animation: dropdownIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.dropdownHeader {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-}
-
+.dropdownHeader { display: flex; align-items: center; gap: 12px; padding: 12px; }
 .dropdownAvatar {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  background: var(--primary-color);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 0.9rem;
-  flex-shrink: 0;
 }
-
-.dropdownInfo {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.dropdownName {
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.dropdownEmail {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.dropdownDivider {
-  height: 1px;
-  background: var(--border-color);
-  margin: 4px 8px;
-}
-
+.dropdownInfo { display: flex; flex-direction: column; min-width: 0; }
+.dropdownName { font-weight: 700; font-size: 0.95rem; color: #111827; }
+.dropdownEmail { font-size: 0.8rem; color: #6b7280; }
+.dropdownDivider { height: 1px; background: #f3f4f6; margin: 4px 8px; }
 .dropdownItem {
   width: 100%;
   display: flex;
@@ -349,39 +246,15 @@
   border: none;
   border-radius: 10px;
   background: transparent;
-  color: var(--text-primary);
+  color: #374151;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s;
   text-align: left;
 }
+.dropdownItem:hover { background: #f9fafb; }
+.logoutItem { color: #ef4444; }
 
-.dropdownItem:hover {
-  background: var(--surface-hover);
-}
-
-.logoutItem {
-  color: #ef4444;
-}
-
-.logoutItem:hover {
-  background: #fef2f2;
-}
-
-@keyframes dropdownIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px) scale(0.96);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* ─── Hamburger Button (mobile only) ─── */
 .hamburger {
   display: none;
   flex-direction: column;
@@ -394,13 +267,12 @@
   border-radius: 10px;
   cursor: pointer;
   padding: 8px;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
 }
 
-.hamburger:hover {
-  background: rgba(16, 185, 129, 0.06);
-  border-color: var(--primary-color);
+@media (max-width: 768px) {
+  .hamburger { display: flex; }
+  .nav { display: none; }
+  .loginButton { display: none; }
 }
 
 .hamburgerLine {
@@ -409,31 +281,20 @@
   height: 2px;
   background: #374151;
   border-radius: 2px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  transform-origin: center;
+  transition: all 0.3s ease;
 }
 
-.hLine1Open {
-  transform: translateY(7px) rotate(45deg);
-}
-.hLine2Open {
-  opacity: 0;
-  transform: scaleX(0);
-}
-.hLine3Open {
-  transform: translateY(-7px) rotate(-45deg);
-}
+.hLine1Open { transform: translateY(7px) rotate(45deg); }
+.hLine2Open { opacity: 0; }
+.hLine3Open { transform: translateY(-7px) rotate(-45deg); }
 
-/* ─── Mobile Nav Dropdown ─── */
 .mobileNav {
-  display: none;
+  display: flex;
   flex-direction: column;
   background: #ffffff;
   border-top: 1px solid #f3f4f6;
   padding: 8px 16px 16px;
   gap: 4px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-  animation: slideDown 0.2s ease;
 }
 
 .mobileNavLink {
@@ -446,42 +307,4 @@
   font-weight: 600;
   font-size: 1rem;
   border-radius: 10px;
-  transition: all 0.15s ease;
-}
-
-.mobileNavLink:hover {
-  background: rgba(16, 185, 129, 0.06);
-  color: var(--primary-color);
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ─── Mobile ─── */
-@media (max-width: 768px) {
-  .mainHeader {
-    padding: 10px 16px;
-  }
-
-  .subtitle { display: none; }
-
-  .nav { display: none; }
-
-  .hamburger { display: flex; }
-
-  .mobileNav { display: flex; }
-
-  .loginButton { display: none; }
-
-  .cartButton {
-    padding: 8px 14px;
-    font-size: 0.85rem;
-  }
-
-  .userDropdown {
-    right: 0;
-    width: 240px;
-  }
 }
