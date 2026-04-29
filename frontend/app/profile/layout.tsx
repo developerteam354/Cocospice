@@ -11,6 +11,9 @@ import SplashScreen from '@/components/SplashScreen/SplashScreen';
 import styles from './ProfilePage.module.css';
 import { useRouter, usePathname } from 'next/navigation';
 
+// Global to track splash screen across internal navigations (resets on refresh)
+let hasShownSplashGlobal = false;
+
 export default function ProfileLayout({ children }: { children: React.ReactNode }) {
   const { user, logout, isLoading: authLoading } = useAuth();
   const { totalItems, cart, updateQuantity, clearCart, setOrderType } = useCart();
@@ -21,17 +24,18 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
   const [showOrderTypeModal, setShowOrderTypeModal] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!hasShownSplashGlobal);
 
   useEffect(() => {
-    const hasShownSplash = sessionStorage.getItem('hasShownSplash');
-    if (!hasShownSplash) {
+    if (!hasShownSplashGlobal) {
       setLoading(true);
       const timer = setTimeout(() => {
         setLoading(false);
-        sessionStorage.setItem('hasShownSplash', 'true');
+        hasShownSplashGlobal = true;
       }, 800);
       return () => clearTimeout(timer);
+    } else {
+      setLoading(false);
     }
   }, []);
 

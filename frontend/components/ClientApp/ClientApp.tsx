@@ -17,6 +17,9 @@ import ItemOptionsModal from '../ItemOptionsModal/ItemOptionsModal';
 import styles from './ClientApp.module.css';
 import { useRouter } from 'next/navigation';
 
+// Global to track splash screen across internal navigations (resets on refresh)
+let hasShownSplashGlobal = false;
+
 interface ClientAppProps {
   categories: Category[];
   menuItems: MenuItem[];
@@ -27,7 +30,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
   const { cart, addToCart: addItemToCart, updateQuantity: handleUpdateQuantity, clearCart, cartTotal, totalItems: totalItemsInCart, orderType, setOrderType } = useCart();
   const router = useRouter();
   
-  const [showSplash, setShowSplash] = useState(false);
+  const [showSplash, setShowSplash] = useState(!hasShownSplashGlobal);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -44,14 +47,14 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
   const [itemWithOptions, setItemWithOptions] = useState<MenuItem | null>(null);
 
   useEffect(() => {
-    const hasShownSplash = sessionStorage.getItem('hasShownSplash');
-    if (!hasShownSplash) {
-      setShowSplash(true);
+    if (!hasShownSplashGlobal) {
       const timer = setTimeout(() => {
         setShowSplash(false);
-        sessionStorage.setItem('hasShownSplash', 'true');
+        hasShownSplashGlobal = true;
       }, 2500);
       return () => clearTimeout(timer);
+    } else {
+      setShowSplash(false);
     }
   }, []);
 
