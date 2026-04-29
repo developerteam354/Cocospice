@@ -27,7 +27,7 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
   const { cart, addToCart: addItemToCart, updateQuantity: handleUpdateQuantity, clearCart, cartTotal, totalItems: totalItemsInCart, orderType, setOrderType } = useCart();
   const router = useRouter();
   
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -44,10 +44,15 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
   const [itemWithOptions, setItemWithOptions] = useState<MenuItem | null>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 2500);
-    return () => clearTimeout(timer);
+    const hasShownSplash = sessionStorage.getItem('hasShownSplash');
+    if (!hasShownSplash) {
+      setShowSplash(true);
+      const timer = setTimeout(() => {
+        setShowSplash(false);
+        sessionStorage.setItem('hasShownSplash', 'true');
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   const handleAddToCart = (item: MenuItem) => {
