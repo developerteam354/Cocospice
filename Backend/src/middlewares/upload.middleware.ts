@@ -29,3 +29,6 @@ export const uploadProductImages = upload.fields([
   { name: 'thumbnail', maxCount: 1 },
   { name: 'gallery',   maxCount: 5 },
 ]);
+
+// Category image (1)
+export const uploadCategoryImage = upload.single('categoryImage');

@@ -1,5 +1,5 @@
-export type OrderStatus = 'Pending' | 'Delivered' | 'Failed';
-export type PaymentMethod = 'UPI' | 'COD' | 'Card' | 'Net Banking';
+export type OrderStatus = 'Pending' | 'Confirmed' | 'On the Way' | 'Delivered' | 'Cancelled';
+export type PaymentMethod = 'Cash on Delivery' | 'Card' | 'Online';
 
 export interface IOrderUser {
   name: string;
@@ -50,7 +50,11 @@ export interface IOrder {
 export interface IOrderStats {
   total: number;
   pending: number;
-  failed: number;
+  confirmed: number;
+  onTheWay: number;
+  delivered: number;
+  cancelled: number;
+  active: number;
 }
 
 export interface IOrderFilters {

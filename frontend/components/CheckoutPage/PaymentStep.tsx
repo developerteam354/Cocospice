@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { CartItem } from '../../types';
-import { Address } from './AddressForm';
+import { Address as CartAddress } from '../../contexts/CartContext';
 import { useCart } from '../../contexts/CartContext';
 import styles from './CheckoutPage.module.css';
 
@@ -13,9 +13,10 @@ const DELIVERY_FEE = 2.99;
 
 interface PaymentStepProps {
   cart: CartItem[];
-  address: Address;
+  address: CartAddress;
   payment: PaymentMethod;
   onPaymentChange: (method: PaymentMethod) => void;
+  codCharge?: number;
 }
 
 /* ── Helpers ── */
@@ -25,7 +26,7 @@ const formatCard = (v: string) =>
 const formatExpiry = (v: string) =>
   v.replace(/\D/g, '').slice(0, 4).replace(/^(\d{2})(\d)/, '$1/$2');
 
-export default function PaymentStep({ cart, address, payment, onPaymentChange }: PaymentStepProps) {
+export default function PaymentStep({ cart, address, payment, onPaymentChange, codCharge = 0 }: PaymentStepProps) {
   const { orderType } = useCart();
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
@@ -33,7 +34,8 @@ export default function PaymentStep({ cart, address, payment, onPaymentChange }:
   const [cardName, setCardName] = useState('');
 
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const total = subtotal + (orderType === 'delivery' ? DELIVERY_FEE : 0);
+  const deliveryFee = orderType === 'delivery' ? DELIVERY_FEE : 0;
+  const total = subtotal + deliveryFee + codCharge;
   const itemCount = cart.reduce((s, i) => s + i.quantity, 0);
 
   const METHODS: { id: PaymentMethod; icon: string; label: string }[] = [
@@ -133,6 +135,11 @@ export default function PaymentStep({ cart, address, payment, onPaymentChange }:
         <div className={styles.cashInfo}>
           <span className={styles.cashIcon}>💵</span>
           <p>Please have <strong>£{total.toFixed(2)}</strong> ready when {orderType === 'delivery' ? 'your rider arrives' : 'you arrive for collection'}. Exact change is appreciated!</p>
+          {codCharge > 0 && (
+            <div className={styles.codNotice}>
+              <strong>Note:</strong> A £{codCharge.toFixed(2)} Cash on Delivery charge has been added to your order.
+            </div>
+          )}
         </div>
       )}
 
@@ -146,6 +153,12 @@ export default function PaymentStep({ cart, address, payment, onPaymentChange }:
           <div className={styles.miniRow}>
             <span>Delivery</span>
             <span>£{DELIVERY_FEE.toFixed(2)}</span>
+          </div>
+        )}
+        {codCharge > 0 && (
+          <div className={styles.miniRow}>
+            <span>COD Charge</span>
+            <span>£{codCharge.toFixed(2)}</span>
           </div>
         )}
         <div className={`${styles.miniRow} ${styles.miniTotal}`}>

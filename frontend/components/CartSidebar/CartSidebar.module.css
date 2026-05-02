@@ -232,6 +232,17 @@
   letter-spacing: 0.05em;
 }
 
+.fillingBadge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 100px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
 .itemActions {
   display: flex;
   justify-content: space-between;

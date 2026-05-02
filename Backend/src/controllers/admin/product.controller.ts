@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { productService } from '../../services/admin/product.service.js';
-import type { IImageAsset } from '../../models/Product.model.js';
+import type { IImageAsset, IExtraOption } from '../../models/Product.model.js';
 
 interface ICreateProductBody {
   name: string;
@@ -12,9 +12,18 @@ interface ICreateProductBody {
   category: string;
   isVeg?: boolean;
   ingredients?: string[];
-  extraOptions?: string[];
+  extraOptions?: Array<{ name: string; price?: number } | string>;
   thumbnail: IImageAsset;
   gallery?: IImageAsset[];
+}
+
+// Normalize extraOptions — handles both old string[] and new {name,price}[] formats
+function normalizeExtraOptions(raw?: Array<{ name: string; price?: number } | string>): IExtraOption[] {
+  if (!raw || !Array.isArray(raw)) return [];
+  return raw.map((opt) => {
+    if (typeof opt === 'string') return { name: opt, price: 0 };
+    return { name: opt.name, price: Number(opt.price ?? 0) };
+  });
 }
 
 export const productController = {
@@ -37,7 +46,7 @@ export const productController = {
         stock:           Number(body.stock ?? 0),
         isAvailable:     body.isAvailable ?? true,
         category:        body.category,
-        extraOptions:    body.extraOptions ?? [],
+        extraOptions:    normalizeExtraOptions(body.extraOptions),
         thumbnail:       body.thumbnail,
         gallery:         body.gallery ?? [],
       });
@@ -108,7 +117,13 @@ export const productController = {
       const { id } = req.params;
       const body = req.body as Partial<ICreateProductBody>;
 
-      const product = await productService.update(id, body);
+      // Normalize extraOptions if provided
+      const updatePayload: Record<string, unknown> = { ...body };
+      if (body.extraOptions !== undefined) {
+        updatePayload.extraOptions = normalizeExtraOptions(body.extraOptions);
+      }
+
+      const product = await productService.update(id, updatePayload as any);
       if (!product) { res.status(404).json({ message: 'Product not found' }); return; }
       
       res.status(200).json({ product, message: 'Product updated successfully' });

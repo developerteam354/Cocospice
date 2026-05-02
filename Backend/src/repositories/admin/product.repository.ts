@@ -1,4 +1,4 @@
-import { Product, type IProduct, type IImageAsset } from '../../models/Product.model.js';
+import { Product, type IProduct, type IImageAsset, type IExtraOption } from '../../models/Product.model.js';
 import { BaseRepository } from '../base.repository.js';
 import { deleteFromS3 } from '../../utils/s3.utils.js';
 
@@ -12,7 +12,7 @@ export interface ICreateProductInput {
   stock: number;
   isAvailable: boolean;
   category: string;
-  extraOptions: string[];
+  extraOptions: IExtraOption[];
   thumbnail: IImageAsset;   // pre-uploaded S3 asset
   gallery: IImageAsset[];   // pre-uploaded S3 assets
 }

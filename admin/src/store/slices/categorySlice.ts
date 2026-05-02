@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { privateApi } from '@/services/api';
+import categoryService from '@/services/categoryService';
 import type { ICategory, ICreateCategoryPayload, IUpdateCategoryPayload } from '@/types/category';
 
 // ─── Thunks ───────────────────────────────────────────────────────────────────
@@ -9,8 +9,7 @@ export const fetchCategories = createAsyncThunk<ICategory[]>(
   'category/fetchCategories',
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await privateApi.get<{ categories: ICategory[] }>('/categories');
-      return data.categories;
+      return await categoryService.getAll();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to fetch categories';
       return rejectWithValue(message);
@@ -18,31 +17,35 @@ export const fetchCategories = createAsyncThunk<ICategory[]>(
   }
 );
 
-export const addCategory = createAsyncThunk<ICategory, ICreateCategoryPayload>(
+export const addCategory = createAsyncThunk<ICategory, ICreateCategoryPayload & { categoryImage?: File }>(
   'category/addCategory',
   async (payload, { rejectWithValue }) => {
     try {
-      const { data } = await privateApi.post<{ category: ICategory }>('/categories', payload);
-      return data.category;
+      return await categoryService.create(payload);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to create category';
-      return rejectWithValue(message);
+      // Extract error message from axios error or use fallback
+      if (err instanceof Error) {
+        return rejectWithValue(err.message);
+      }
+      return rejectWithValue('Failed to create category');
     }
   }
 );
 
 export const updateCategory = createAsyncThunk<
   ICategory,
-  { id: string; payload: IUpdateCategoryPayload }
+  { id: string; payload: IUpdateCategoryPayload & { categoryImage?: File } }
 >(
   'category/updateCategory',
   async ({ id, payload }, { rejectWithValue }) => {
     try {
-      const { data } = await privateApi.put<{ category: ICategory }>(`/categories/${id}`, payload);
-      return data.category;
+      return await categoryService.update(id, payload);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to update category';
-      return rejectWithValue(message);
+      // Extract error message from axios error or use fallback
+      if (err instanceof Error) {
+        return rejectWithValue(err.message);
+      }
+      return rejectWithValue('Failed to update category');
     }
   }
 );
@@ -51,8 +54,7 @@ export const toggleCategoryStatus = createAsyncThunk<ICategory, string>(
   'category/toggleCategoryStatus',
   async (id, { rejectWithValue }) => {
     try {
-      const { data } = await privateApi.patch<{ category: ICategory }>(`/categories/${id}/toggle`);
-      return data.category;
+      return await categoryService.toggle(id);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to toggle category status';
       return rejectWithValue(message);
@@ -64,7 +66,7 @@ export const deleteCategory = createAsyncThunk<string, string>(
   'category/deleteCategory',
   async (id, { rejectWithValue }) => {
     try {
-      await privateApi.delete(`/categories/${id}`);
+      await categoryService.delete(id);
       return id;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to delete category';
@@ -94,6 +96,10 @@ const categorySlice = createSlice({
   initialState,
   reducers: {
     clearError(state) {
+      state.error = null;
+    },
+    resetCategoryState(state) {
+      state.loading = false;
       state.error = null;
     },
   },
@@ -175,5 +181,5 @@ const categorySlice = createSlice({
   },
 });
 
-export const { clearError } = categorySlice.actions;
+export const { clearError, resetCategoryState } = categorySlice.actions;
 export default categorySlice.reducer;

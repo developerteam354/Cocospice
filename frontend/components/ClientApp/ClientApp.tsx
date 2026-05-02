@@ -2,49 +2,71 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Category, MenuItem, CartItem } from '../../types';
+import { MenuItem, ExtraOption } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { fetchProducts, fetchProductsByCategory } from '../../store/slices/productSlice';
+import { fetchCategories } from '../../store/slices/categorySlice';
+import { toast } from 'sonner';
 import Header from '../Header/Header';
 import MainContent from '../MainContent/MainContent';
 import CartSidebar from '../CartSidebar/CartSidebar';
 import SplashScreen from '../SplashScreen/SplashScreen';
 import AuthModal from '../AuthModal/AuthModal';
-import LoginPrompt from '../LoginPrompt/LoginPrompt';
 import ItemDetailModal from '../ItemDetailModal/ItemDetailModal';
 import OrderTypeModal from '../OrderTypeModal/OrderTypeModal';
-import ItemOptionsModal from '../ItemOptionsModal/ItemOptionsModal';
+import ExtrasModal from '../ExtrasModal/ExtrasModal';
+
 import styles from './ClientApp.module.css';
 import { useRouter } from 'next/navigation';
+import { ThreeDot } from 'react-loading-indicators';
 
 // Global to track splash screen across internal navigations (resets on refresh)
 let hasShownSplashGlobal = false;
 
-interface ClientAppProps {
-  categories: Category[];
-  menuItems: MenuItem[];
-}
-
-export default function ClientApp({ categories, menuItems }: ClientAppProps) {
-  const { user } = useAuth();
+export default function ClientApp() {
+  const dispatch = useAppDispatch();
+  const { user, setIntended } = useAuth();
   const { cart, addToCart: addItemToCart, updateQuantity: handleUpdateQuantity, clearCart, cartTotal, totalItems: totalItemsInCart, orderType, setOrderType } = useCart();
   const router = useRouter();
+  
+  // Redux state
+  const { items: menuItems, loading: productsLoading, error: productsError } = useAppSelector((state) => state.products);
+  const { items: categories, loading: categoriesLoading, error: categoriesError } = useAppSelector((state) => state.categories);
   
   const [showSplash, setShowSplash] = useState(!hasShownSplashGlobal);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [toastKey, setToastKey] = useState(0);
-  const [toasts, setToasts] = useState<{ id: number, message: string }[]>([]);
 
-  // Auth modal state
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
+  // Auth modal state — single unified modal
+  const [showAuthModal,  setShowAuthModal]  = useState(false);
+  const [authModalMode,  setAuthModalMode]  = useState<'login' | 'signup'>('login');
+  // 'checkout' → show OrderTypeModal after login; 'header' → just close modal
+  const [loginOrigin,    setLoginOrigin]    = useState<'header' | 'checkout'>('header');
 
   // Checkout page
   const [showOrderTypeModal, setShowOrderTypeModal] = useState(false);
-  const [itemWithOptions, setItemWithOptions] = useState<MenuItem | null>(null);
+  // Extras customisation modal
+  const [extrasItem, setExtrasItem] = useState<MenuItem | null>(null);
+
+  // Fetch initial data
+  useEffect(() => {
+    dispatch(fetchCategories());
+    dispatch(fetchProducts());
+  }, [dispatch]);
+
+  // Handle errors
+  useEffect(() => {
+    if (productsError) {
+      toast.error(productsError);
+    }
+    if (categoriesError) {
+      toast.error(categoriesError);
+    }
+  }, [productsError, categoriesError]);
 
   useEffect(() => {
     if (!hasShownSplashGlobal) {
@@ -58,38 +80,52 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
     }
   }, []);
 
-  const handleAddToCart = (item: MenuItem) => {
-    if (item.options && item.options.length > 0) {
-      setItemWithOptions(item);
-      setSelectedItem(null); // Close detail modal if open
+  /**
+   * Central "Add to Cart" handler.
+   * - Called from product cards (no extras arg) and from ItemDetailModal.
+   * - If the product has extras AND no extras have been chosen yet → open ExtrasModal.
+   * - Otherwise add directly.
+   */
+  const handleAddToCart = (item: MenuItem, selectedExtras?: ExtraOption[]) => {
+    const hasExtras = item.extraOptions && item.extraOptions.length > 0;
+
+    // If extras exist and caller hasn't already resolved them → open modal
+    if (hasExtras && selectedExtras === undefined) {
+      setExtrasItem(item);
+      setSelectedItem(null); // close detail modal if open
       return;
     }
-    addItemToCart(item);
-    showToast(`${item.name} added to cart`);
-  };
 
-  const showToast = (message: string) => {
-    const newToastId = Date.now();
-    setToasts(prev => [...prev, { id: newToastId, message }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== newToastId));
-    }, 3000);
+    // Add to cart (with or without extras)
+    addItemToCart(item, selectedExtras && selectedExtras.length > 0 ? selectedExtras : undefined);
 
-    setToastKey(prev => prev + 1);
-  };
-
-  const handleConfirmOptions = (options: Record<string, string>) => {
-    if (itemWithOptions) {
-      addItemToCart(itemWithOptions, options);
-      setItemWithOptions(null);
-      showToast(`${itemWithOptions.name} added to cart`);
+    if (selectedExtras && selectedExtras.length > 0) {
+      const names = selectedExtras.map((e) => e.name).join(', ');
+      toast.success(`${item.name} added to cart (${names})`);
+    } else {
+      toast.success(`${item.name} added to cart`);
     }
+  };
+
+  /** Called when user confirms selection inside ExtrasModal */
+  const handleExtrasConfirm = (item: MenuItem, selectedExtras: ExtraOption[]) => {
+    addItemToCart(item, selectedExtras.length > 0 ? selectedExtras : undefined);
+    if (selectedExtras.length > 0) {
+      const names = selectedExtras.map((e) => e.name).join(', ');
+      toast.success(`${item.name} added to cart (${names})`);
+    } else {
+      toast.success(`${item.name} added to cart`);
+    }
+    setExtrasItem(null);
   };
 
   // Checkout handler — checks auth before proceeding
   const handleCheckout = () => {
     if (!user) {
-      setShowLoginPrompt(true);
+      setLoginOrigin('checkout');
+      setIntended(null); // no page navigation needed — just open OrderTypeModal after login
+      setAuthModalMode('login');
+      setShowAuthModal(true);
       return;
     }
     setIsCartOpen(false);
@@ -102,23 +138,22 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
     router.push('/checkout/review');
   };
 
-  // Login prompt → open auth modal
-  const handlePromptSignIn = () => {
-    setShowLoginPrompt(false);
-    setAuthModalMode('login');
-    setShowAuthModal(true);
-  };
-
-  const handlePromptSignUp = () => {
-    setShowLoginPrompt(false);
-    setAuthModalMode('signup');
-    setShowAuthModal(true);
-  };
-
-  // Open auth modal from header
+  // Open auth modal from header — no checkout flow, just sign in
   const handleOpenAuth = (mode: 'login' | 'signup') => {
+    setLoginOrigin('header');
     setAuthModalMode(mode);
     setShowAuthModal(true);
+  };
+
+  // Handle category selection
+  const handleSelectCategory = (id: string) => {
+    setSelectedCategoryId(id);
+    dispatch(fetchProductsByCategory(id));
+  };
+
+  const handleSelectAllCategories = () => {
+    setSelectedCategoryId(null);
+    dispatch(fetchProducts());
   };
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -127,9 +162,31 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
     return <SplashScreen />;
   }
 
-  const filteredItems = selectedCategoryId === null
-    ? menuItems
-    : menuItems.filter(item => item.categoryId === selectedCategoryId);
+  // Show loading state
+  if ((productsLoading || categoriesLoading) && menuItems.length === 0) {
+    return (
+      <div className={styles.appContainer}>
+        <Header
+          cartCount={totalItemsInCart}
+          onOpenCart={() => setIsCartOpen(true)}
+          onOpenAuth={handleOpenAuth}
+        />
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '60vh',
+          flexDirection: 'column',
+          gap: '1rem'
+        }}>
+          <ThreeDot color="#ff6b35" size="medium" />
+          <p style={{ color: '#666', fontSize: '1.1rem' }}>Loading menu...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const filteredItems = menuItems;
 
   const selectedCategoryName = selectedCategoryId === null
     ? 'All Categories'
@@ -143,31 +200,32 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
         onOpenAuth={handleOpenAuth}
       />
 
-      {/* Toast Notification Container */}
-      <div className={styles.toastContainer}>
-        {toasts.map(t => (
-          <div key={t.id} className={styles.toast}>
-            <span className={styles.toastIcon}>✅</span>
-            <span className={styles.toastMessage}>{t.message}</span>
-          </div>
-        ))}
-      </div>
-
       {/* Floating Cart Bouncing Banner */}
       {cart.length > 0 && !isCartOpen && (
         <div key={toastKey} className={styles.floatingCartBanner} onClick={() => setIsCartOpen(true)}>
           {/* Item Thumbnails */}
           <div className={styles.floatingCartThumbsWrap}>
             {cart.slice(0, 3).map((item, i) => (
-              <Image
-                key={item.id}
-                src={item.image}
-                alt={item.name}
-                width={36}
-                height={36}
-                className={styles.floatingCartThumb}
-                style={{ zIndex: 3 - i, marginLeft: i === 0 ? 0 : -10 }}
-              />
+              <React.Fragment key={`${item.id}-${i}`}>
+                {item.image ? (
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    width={36}
+                    height={36}
+                    className={styles.floatingCartThumb}
+                    style={{ zIndex: 3 - i, marginLeft: i === 0 ? 0 : -10 }}
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                ) : (
+                  <div
+                    className={styles.floatingCartThumb}
+                    style={{ zIndex: 3 - i, marginLeft: i === 0 ? 0 : -10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f0f0', fontSize: 18 }}
+                  >
+                    🍽️
+                  </div>
+                )}
+              </React.Fragment>
             ))}
             {cart.length > 3 && (
               <div className={styles.floatingCartThumbMore}>+{cart.length - 3}</div>
@@ -197,21 +255,30 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
           <div className={styles.categoryScrollContainer}>
             <button
               className={`${styles.categoryPill} ${selectedCategoryId === null ? styles.activePill : ''}`}
-              onClick={() => setSelectedCategoryId(null)}
+              onClick={handleSelectAllCategories}
             >
               <span className={styles.categoryIcon}>🍽️</span>
               <span className={styles.categoryText}>All Categories</span>
             </button>
             {categories.map((c, index) => {
-              const catImage = menuItems.find(item => item.categoryId === c.id)?.image || '/images/default.png';
               return (
                 <button
                   key={c.id}
                   className={`${styles.categoryPill} ${selectedCategoryId === c.id ? styles.activePill : ''}`}
-                  onClick={() => setSelectedCategoryId(c.id)}
+                  onClick={() => handleSelectCategory(c.id)}
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  <Image src={catImage} alt={c.name} width={36} height={36} className={styles.categoryImg} />
+                  {c.categoryImage ? (
+                    <Image 
+                      src={c.categoryImage} 
+                      alt={c.name} 
+                      width={36} 
+                      height={36} 
+                      className={styles.categoryImg} 
+                    />
+                  ) : (
+                    <span className={styles.categoryIcon}>🍽️</span>
+                  )}
                   <span className={styles.categoryText}>{c.name}</span>
                 </button>
               );
@@ -243,14 +310,26 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
             </button>
           </div>
 
-          <MainContent
-            categoryTitle={selectedCategoryName}
-            items={filteredItems}
-            categories={selectedCategoryId === null ? categories : undefined}
-            onSelectCategory={(id) => setSelectedCategoryId(id)}
-            onAddToCart={handleAddToCart}
-            onSelectItem={setSelectedItem}
-          />
+          {productsLoading ? (
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center', 
+              minHeight: '40vh',
+              flexDirection: 'column',
+              gap: '1rem'
+            }}>
+              <ThreeDot color="#ff6b35" size="small" />
+              <p style={{ color: '#666' }}>Loading products...</p>
+            </div>
+          ) : (
+            <MainContent
+              categoryTitle={selectedCategoryName}
+              items={filteredItems}
+              onAddToCart={handleAddToCart}
+              onSelectItem={setSelectedItem}
+            />
+          )}
         </div>
       </main>
 
@@ -279,30 +358,33 @@ export default function ClientApp({ categories, menuItems }: ClientAppProps) {
         />
       )}
 
-      {/* Login Prompt Popup */}
-      {showLoginPrompt && (
-        <LoginPrompt
-          onSignIn={handlePromptSignIn}
-          onSignUp={handlePromptSignUp}
-          onClose={() => setShowLoginPrompt(false)}
-        />
-      )}
-
       {/* Auth Modal (Login/Signup form) */}
       {showAuthModal && (
         <AuthModal
           initialMode={authModalMode}
-          onClose={() => setShowAuthModal(false)}
+          onClose={() => { setShowAuthModal(false); setIntended(null); }}
+          onSuccess={() => {
+            setShowAuthModal(false);
+            // Only open the delivery/collection modal when coming from checkout
+            if (loginOrigin === 'checkout') {
+              setIsCartOpen(false);
+              setShowOrderTypeModal(true);
+            }
+            // If from header — just close the modal, stay on current page
+          }}
         />
       )}
 
-      {itemWithOptions && (
-        <ItemOptionsModal
-          item={itemWithOptions}
-          onConfirm={handleConfirmOptions}
-          onClose={() => setItemWithOptions(null)}
+      {/* Extras Customisation Modal */}
+      {extrasItem && (
+        <ExtrasModal
+          item={extrasItem}
+          onConfirm={handleExtrasConfirm}
+          onClose={() => setExtrasItem(null)}
         />
       )}
+
+
     </div>
   );
 }

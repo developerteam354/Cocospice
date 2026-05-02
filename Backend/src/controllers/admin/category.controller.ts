@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { categoryService } from '../../services/admin/category.service.js';
+import { uploadRepository } from '../../repositories/admin/upload.repository.js';
 
 export const categoryController = {
   getAll: async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -18,9 +19,18 @@ export const categoryController = {
         return;
       }
 
+      let categoryImage = '';
+      
+      // Handle category image upload if provided
+      if (req.file) {
+        const uploadResult = await uploadRepository.uploadImage(req.file, 'categories');
+        categoryImage = uploadResult.url;
+      }
+
       const category = await categoryService.create({ 
         name: name.trim(), 
-        description: description?.trim() ?? '' 
+        description: description?.trim() ?? '',
+        categoryImage
       });
       res.status(201).json({ category, message: 'Category created' });
     } catch (err) { next(err); }
@@ -32,9 +42,15 @@ export const categoryController = {
       const input = req.body as { name?: string; description?: string };
       
       // Trim values if provided
-      const trimmedInput: { name?: string; description?: string } = {};
+      const trimmedInput: { name?: string; description?: string; categoryImage?: string } = {};
       if (input.name !== undefined) trimmedInput.name = input.name.trim();
       if (input.description !== undefined) trimmedInput.description = input.description.trim();
+      
+      // Handle category image upload if provided
+      if (req.file) {
+        const uploadResult = await uploadRepository.uploadImage(req.file, 'categories');
+        trimmedInput.categoryImage = uploadResult.url;
+      }
       
       const category = await categoryService.update(id, trimmedInput);
       if (!category) { res.status(404).json({ message: 'Category not found' }); return; }

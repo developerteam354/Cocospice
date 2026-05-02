@@ -192,7 +192,17 @@
 }
 
 .userArea { position: relative; }
-.avatarBtn { background: none; border: none; cursor: pointer; padding: 0; }
+.avatarBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Legacy — kept so existing CSS references don't break */
 .avatarCircle {
   width: 40px;
   height: 40px;

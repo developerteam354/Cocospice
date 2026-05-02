@@ -2,13 +2,15 @@ import { Category, type ICategory } from '../../models/Category.model.js';
 import { BaseRepository } from '../base.repository.js';
 
 export interface ICreateCategoryInput {
-  name:        string;
-  description: string;
+  name:          string;
+  description:   string;
+  categoryImage?: string;
 }
 
 export interface IUpdateCategoryInput {
-  name?:        string;
-  description?: string;
+  name?:          string;
+  description?:   string;
+  categoryImage?: string;
 }
 
 export class CategoryRepository extends BaseRepository<ICategory> {

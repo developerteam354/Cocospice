@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CartItem } from '../../types';
+import { calcItemUnitPrice } from '../../contexts/CartContext';
 import styles from './CartSidebar.module.css';
 
 interface CartSidebarProps {
@@ -11,7 +12,7 @@ interface CartSidebarProps {
 }
 
 export default function CartSidebar({ cart, onUpdateQuantity, onClearCart, onClose, onCheckout }: CartSidebarProps) {
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + calcItemUnitPrice(item) * item.quantity, 0);
 
   // Dragging state
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -83,13 +84,15 @@ export default function CartSidebar({ cart, onUpdateQuantity, onClearCart, onClo
               <div className={styles.itemMain}>
                 <div className={styles.itemInfo}>
                   <span className={styles.itemName}>{item.name}</span>
-                  <span className={styles.itemPrice}>£{(item.price * item.quantity).toFixed(2)}</span>
+                  <span className={styles.itemPrice}>£{(calcItemUnitPrice(item) * item.quantity).toFixed(2)}</span>
                 </div>
                 
-                {item.selectedOptions && (
+                {item.selectedExtraOptions && item.selectedExtraOptions.length > 0 && (
                   <div className={styles.itemOptions}>
-                    {Object.entries(item.selectedOptions).map(([key, value]) => (
-                      <span key={key} className={styles.optionBadge}>{value}</span>
+                    {item.selectedExtraOptions.map((opt, i) => (
+                      <span key={i} className={styles.fillingBadge}>
+                        ➕ {opt.name}{opt.price > 0 ? ` (+£${opt.price.toFixed(2)})` : ''}
+                      </span>
                     ))}
                   </div>
                 )}

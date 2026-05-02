@@ -41,7 +41,7 @@ const mockOrders: Order[] = [
     address: '123 Curry Lane, London, E1 6AN',
     items: [
       { id: 'm4', name: 'Chicken Tikka', description: '', price: 4.50, quantity: 2, image: '/images/starters.png', categoryId: 'c2' },
-      { id: 'm6', name: 'Chicken Balti', description: '', price: 8.90, quantity: 1, image: '/images/balti.png', categoryId: 'c3', selectedOptions: { 'Spice Level': 'Medium' } }
+      { id: 'm6', name: 'Chicken Balti', description: '', price: 8.90, quantity: 1, image: '/images/balti.png', categoryId: 'c3' }
     ]
   },
   {
@@ -52,7 +52,7 @@ const mockOrders: Order[] = [
     orderType: 'collection',
     paymentMethod: 'cash',
     items: [
-      { id: 'm10', name: 'Somosa', description: '', price: 3.80, quantity: 2, image: '/images/starters.png', categoryId: 'c2', selectedOptions: { 'Filling': 'Meat' } },
+      { id: 'm10', name: 'Somosa', description: '', price: 3.80, quantity: 2, image: '/images/starters.png', categoryId: 'c2' },
       { id: 'm1', name: 'Plain Poppadom', description: '', price: 0.90, quantity: 3, image: '/images/poppadom.png', categoryId: 'c1' }
     ]
   }

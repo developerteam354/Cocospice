@@ -4,9 +4,9 @@ import bcrypt from 'bcrypt';
 import { Admin } from '../models/Admin.model.js';
 
 const SEED_ADMIN = {
-  fullName: 'Asadh',
-  email:    'asadhfor2004@gmail.com',
-  password: 'asadh12345',
+  fullName: 'Dev Team Admin',
+  email:    'devteamadmin@gmail.com',
+  password: 'devadmin123',
   role:     'admin' as const,
 };
 

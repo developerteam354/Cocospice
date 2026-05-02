@@ -1,16 +1,15 @@
 export interface IUser {
   _id: string;
-  fullName: string;
+  name: string;
   email: string;
+  phone: string;
   profileImage: string;
-  joinedDate: string;
+  isActive: boolean;
   createdAt: string;
 }
 
 export interface IUserStats {
-  totalUsers: number;
-}
-
-export interface IUserFilters {
-  search?: string;
+  total: number;
+  active: number;
+  blocked: number;
 }

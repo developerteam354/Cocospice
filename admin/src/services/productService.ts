@@ -5,6 +5,7 @@ import type {
   IProductFilters,
   IProduct,
   IImageAsset,
+  IExtraOption,
 } from '@/types/product';
 import type { IProductCategory } from '@/types/product';
 
@@ -18,7 +19,7 @@ export interface ICreateProductPayload {
   stock: number;
   isAvailable: boolean;
   category: string;
-  extraOptions: string[];
+  extraOptions: IExtraOption[];
   thumbnail: IImageAsset;
   gallery: IImageAsset[];
 }

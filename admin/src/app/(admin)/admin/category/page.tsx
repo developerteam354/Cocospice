@@ -11,6 +11,7 @@ import {
   updateCategory,
   toggleCategoryStatus,
   deleteCategory,
+  resetCategoryState,
 } from '@/store/slices/categorySlice';
 import type { ICategory } from '@/types/category';
 import Badge from '@/components/ui/Badge';
@@ -49,10 +50,24 @@ export default function CategoryPage() {
     setFiltered(q ? categories.filter((c) => c.name.toLowerCase().includes(q)) : categories);
   }, [search, categories]);
 
-  const openCreate = () => { setEditing(null); setModalOpen(true); };
-  const openEdit   = (cat: ICategory) => { setEditing(cat); setModalOpen(true); };
+  const openCreate = () => { 
+    dispatch(resetCategoryState()); 
+    setEditing(null); 
+    setModalOpen(true); 
+  };
+  
+  const openEdit = (cat: ICategory) => { 
+    dispatch(resetCategoryState()); 
+    setEditing(cat); 
+    setModalOpen(true); 
+  };
 
-  const handleSave = async (data: { name: string; description: string }) => {
+  const handleCloseModal = () => {
+    dispatch(resetCategoryState());
+    setModalOpen(false);
+  };
+
+  const handleSave = async (data: { name: string; description: string; categoryImage?: File }) => {
     const tid = toast.loading(editing ? 'Updating...' : 'Creating...');
     try {
       if (editing) {
@@ -65,8 +80,9 @@ export default function CategoryPage() {
         setModalOpen(false);
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed', { id: tid });
-      throw err; // keep modal open
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save category';
+      toast.error(errorMessage, { id: tid });
+      // Don't rethrow - let modal stay open so user can fix the error
     }
   };
 
@@ -98,7 +114,7 @@ export default function CategoryPage() {
 
       <CategoryModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={handleCloseModal}
         onSave={handleSave}
         initial={editing}
       />

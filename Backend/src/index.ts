@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import connectDB from './config/db.js';
 import apiRoutes from './routes/index.js';
 import { errorHandler } from './middlewares/error.middleware.js';
+// import { seedAdminUser } from './utils/seedAdmin.js'; // ✅ Seeding completed - commented out
 
 // ─── Validate required env vars at startup ────────────────────────────────────
 const REQUIRED_ENV = [
@@ -64,6 +65,10 @@ app.use(errorHandler);
 
 const startServer = async (): Promise<void> => {
   await connectDB();
+  
+  // ✅ Admin seeding completed - function call removed to avoid unnecessary DB checks
+  // await seedAdminUser();
+  
   app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
   });

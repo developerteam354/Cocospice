@@ -48,10 +48,12 @@ export default function OrderReview({ cart, note, onNoteChange }: OrderReviewPro
             </div>
             <div className={styles.itemDetails}>
               <span className={styles.itemName}>{item.name}</span>
-              {item.selectedOptions && (
+              {item.selectedExtraOptions && item.selectedExtraOptions.length > 0 && (
                 <div className={styles.itemOptions}>
-                  {Object.entries(item.selectedOptions).map(([key, value]) => (
-                    <span key={key} className={styles.optionBadge}>{value}</span>
+                  {item.selectedExtraOptions.map((opt) => (
+                    <span key={opt.name} className={styles.optionBadge}>
+                      {opt.name}{opt.price > 0 ? ` (+£${opt.price.toFixed(2)})` : ''}
+                    </span>
                   ))}
                 </div>
               )}

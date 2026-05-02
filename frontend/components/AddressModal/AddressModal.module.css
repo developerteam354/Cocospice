@@ -22,12 +22,20 @@
   background: white;
   width: 90%;
   max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
   border-radius: 32px;
   padding: 40px;
   position: relative;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  scrollbar-width: thin;
+  scrollbar-color: #e2e8f0 transparent;
 }
+
+.modal::-webkit-scrollbar { width: 4px; }
+.modal::-webkit-scrollbar-track { background: transparent; }
+.modal::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
 
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(30px) scale(0.95); }
@@ -116,6 +124,44 @@
   border-color: var(--primary-color);
   background: white;
   box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+/* Error state */
+.inputError {
+  border-color: #ef4444 !important;
+  background: #fff5f5;
+}
+
+.inputError:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1) !important;
+}
+
+.errorMsg {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #ef4444;
+  margin-top: -2px;
+  margin-left: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.errorMsg::before {
+  content: '⚠';
+  font-size: 0.72rem;
+}
+
+.required {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+.optional {
+  color: #94a3b8;
+  font-weight: 500;
+  font-size: 0.8rem;
 }
 
 .checkboxGroup {

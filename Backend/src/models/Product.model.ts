@@ -12,6 +12,17 @@ export interface IRatings {
   count: number;
 }
 
+export interface IMenuOption {
+  name: string;
+  choices: string[];
+  required: boolean;
+}
+
+export interface IExtraOption {
+  name: string;
+  price: number;
+}
+
 // ─── Main Interface ───────────────────────────────────────────────────────────
 
 export interface IProduct extends Document {
@@ -38,7 +49,7 @@ export interface IProduct extends Document {
   // Stats
   ratings: IRatings;
   soldCount: number;
-  extraOptions: string[];
+  extraOptions: IExtraOption[];
 
   // Timestamps (injected by mongoose)
   createdAt: Date;
@@ -59,6 +70,23 @@ const ratingsSchema = new Schema<IRatings>(
   {
     average: { type: Number, default: 0, min: 0, max: 5 },
     count:   { type: Number, default: 0, min: 0 },
+  },
+  { _id: false }
+);
+
+const menuOptionSchema = new Schema<IMenuOption>(
+  {
+    name:     { type: String, required: true },
+    choices:  { type: [String], required: true },
+    required: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
+
+const extraOptionSchema = new Schema<IExtraOption>(
+  {
+    name:  { type: String, required: true },
+    price: { type: Number, default: 0, min: 0 },
   },
   { _id: false }
 );
@@ -94,7 +122,7 @@ const productSchema = new Schema<IProduct>(
     // Stats
     ratings:      { type: ratingsSchema, default: () => ({ average: 0, count: 0 }) },
     soldCount:    { type: Number, default: 0, min: 0 },
-    extraOptions: { type: [String], default: [] },
+    extraOptions: { type: [extraOptionSchema], default: [] },
   },
   { timestamps: true }
 );

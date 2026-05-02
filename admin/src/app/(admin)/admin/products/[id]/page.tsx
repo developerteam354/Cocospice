@@ -329,14 +329,19 @@ export default function ProductDetailsPage() {
                   </h3>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {product.extraOptions.map((option, idx) => (
-                    <span
-                      key={idx}
-                      className="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-4 py-1.5 text-sm font-medium text-indigo-300"
-                    >
-                      {option}
-                    </span>
-                  ))}
+                  {product.extraOptions.map((option, idx) => {
+                    // Handle both old string format and new {name, price} format
+                    const name  = typeof option === 'string' ? option : option.name;
+                    const price = typeof option === 'string' ? 0 : option.price;
+                    return (
+                      <span
+                        key={idx}
+                        className="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-4 py-1.5 text-sm font-medium text-indigo-300"
+                      >
+                        {name}{price > 0 ? ` (+£${price.toFixed(2)})` : ''}
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
             )}

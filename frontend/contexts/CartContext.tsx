@@ -1,7 +1,36 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { MenuItem, CartItem } from '../types';
+/**
+ * CartContext — thin wrapper around the Redux cartSlice.
+ *
+ * Persistence strategy:
+ *  - redux-persist writes cart to localStorage on every change (works for guests too)
+ *  - When a user is identified (logged-in or returning guest), the cart is also
+ *    synced to the backend using a sessionId (userId or a stable guestId)
+ *
+ * All existing consumers keep the same API — no changes needed elsewhere.
+ */
+
+import React, { createContext, useContext, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState, AppDispatch } from '../store/store';
+import {
+  addToCart as addToCartAction,
+  updateQuantity as updateQuantityAction,
+  clearCart as clearCartAction,
+  setOrderType as setOrderTypeAction,
+  setOrderNote as setOrderNoteAction,
+  fetchCartFromServer,
+  syncCartToServer,
+  calcItemUnitPrice,
+} from '../store/slices/cartSlice';
+import type { MenuItem, CartItem, ExtraOption } from '../types';
+import { getCurrentUser } from '../services/authService';
+
+// Re-export so existing imports of calcItemUnitPrice from CartContext still work
+export { calcItemUnitPrice };
+
+// ─── Address types (unchanged) ────────────────────────────────────────────────
 
 export interface Address {
   id?: string;
@@ -23,9 +52,34 @@ export const EMPTY_ADDRESS: Address = {
   phone: '',
 };
 
+// ─── Session ID helpers ───────────────────────────────────────────────────────
+
+const GUEST_ID_KEY = 'cocospice_guest_id';
+
+/**
+ * Returns a stable session identifier:
+ * - Logged-in user → their user.id
+ * - Guest → a UUID stored in localStorage (created once, persists across refreshes)
+ */
+function getSessionId(): string {
+  const user = getCurrentUser();
+  if (user?.id) return `user_${user.id}`;
+
+  if (typeof window === 'undefined') return 'ssr_guest';
+
+  let guestId = localStorage.getItem(GUEST_ID_KEY);
+  if (!guestId) {
+    guestId = `guest_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    localStorage.setItem(GUEST_ID_KEY, guestId);
+  }
+  return guestId;
+}
+
+// ─── Context type ─────────────────────────────────────────────────────────────
+
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (item: MenuItem, selectedOptions?: Record<string, string>) => void;
+  addToCart: (item: MenuItem, selectedExtraOptions?: ExtraOption[]) => void;
   updateQuantity: (index: number, delta: number) => void;
   clearCart: () => void;
   cartTotal: number;
@@ -40,56 +94,80 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+// ─── Provider ─────────────────────────────────────────────────────────────────
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [orderType, setOrderType] = useState<'delivery' | 'collection'>('delivery');
-  const [orderNote, setOrderNote] = useState('');
-  const [shippingAddress, setShippingAddress] = useState<Address>(EMPTY_ADDRESS);
+  const dispatch = useDispatch<AppDispatch>();
+  const { items, orderType, orderNote } = useSelector((s: RootState) => s.cart);
 
-  const addToCart = (item: MenuItem, selectedOptions?: Record<string, string>) => {
-    setCart((prev) => {
-      const existing = prev.find((c) => 
-        c.id === item.id && 
-        JSON.stringify(c.selectedOptions) === JSON.stringify(selectedOptions)
-      );
-      if (existing) {
-        return prev.map((c) => (
-          c.id === item.id && JSON.stringify(c.selectedOptions) === JSON.stringify(selectedOptions) 
-            ? { ...c, quantity: c.quantity + 1 } 
-            : c
-        ));
-      }
-      return [...prev, { ...item, quantity: 1, selectedOptions }];
-    });
-  };
+  // Shipping address stays local (filled at checkout, not persisted)
+  const [shippingAddress, setShippingAddress] = React.useState<Address>(EMPTY_ADDRESS);
 
-  const updateQuantity = (index: number, delta: number) => {
-    setCart((prev) => {
-      return prev.map((c, i) => {
-        if (i === index) {
-          return { ...c, quantity: Math.max(0, c.quantity + delta) };
-        }
-        return c;
-      }).filter(c => c.quantity > 0);
-    });
-  };
+  // ── On mount: fetch server cart (merges with / overrides localStorage) ──────
+  useEffect(() => {
+    const sessionId = getSessionId();
+    dispatch(fetchCartFromServer(sessionId));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const clearCart = () => setCart([]);
+  // ── Debounced sync: push to server 1.5 s after any cart change ──────────────
+  const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (syncTimer.current) clearTimeout(syncTimer.current);
+    syncTimer.current = setTimeout(() => {
+      const sessionId = getSessionId();
+      dispatch(syncCartToServer({ sessionId, items, orderType, orderNote }));
+    }, 1500);
 
-  const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    return () => {
+      if (syncTimer.current) clearTimeout(syncTimer.current);
+    };
+  }, [items, orderType, orderNote, dispatch]);
+
+  // ── Public API ─────────────────────────────────────────────────────────────
+
+  const addToCart = (item: MenuItem, selectedExtraOptions?: ExtraOption[]) =>
+    dispatch(addToCartAction({ item, selectedExtraOptions }));
+
+  const updateQuantity = (index: number, delta: number) =>
+    dispatch(updateQuantityAction({ index, delta }));
+
+  const clearCart = () => dispatch(clearCartAction());
+
+  const setOrderType = (type: 'delivery' | 'collection') =>
+    dispatch(setOrderTypeAction(type));
+
+  const setOrderNote = (note: string) => dispatch(setOrderNoteAction(note));
+
+  // ── Derived values ─────────────────────────────────────────────────────────
+
+  const cartTotal  = items.reduce((sum, item) => sum + calcItemUnitPrice(item) * item.quantity, 0);
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, updateQuantity, clearCart, cartTotal, totalItems, orderType, setOrderType, orderNote, setOrderNote, shippingAddress, setShippingAddress }}>
+    <CartContext.Provider value={{
+      cart: items,
+      addToCart,
+      updateQuantity,
+      clearCart,
+      cartTotal,
+      totalItems,
+      orderType,
+      setOrderType,
+      orderNote,
+      setOrderNote,
+      shippingAddress,
+      setShippingAddress,
+    }}>
       {children}
     </CartContext.Provider>
   );
 }
 
-export function useCart() {
-  const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
-  return context;
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+
+export function useCart(): CartContextType {
+  const ctx = useContext(CartContext);
+  if (!ctx) throw new Error('useCart must be used within a CartProvider');
+  return ctx;
 }

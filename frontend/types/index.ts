@@ -4,6 +4,11 @@ export interface MenuOption {
   required?: boolean;
 }
 
+export interface ExtraOption {
+  name: string;
+  price: number;
+}
+
 export interface MenuItem {
   id: string;
   name: string;
@@ -13,17 +18,24 @@ export interface MenuItem {
   images?: string[];
   ingredients?: string[];
   categoryId: string;
-  options?: MenuOption[];
+  extraOptions?: ExtraOption[];
+  // Additional fields from backend
+  isVeg?: boolean;
+  stock?: number;
+  isAvailable?: boolean;
+  ratings?: { average: number; count: number };
+  soldCount?: number;
 }
 
 export interface Category {
   id: string;
   name: string;
+  categoryImage?: string;
 }
 
 export interface CartItem extends MenuItem {
   quantity: number;
-  selectedOptions?: Record<string, string>;
+  selectedExtraOptions?: ExtraOption[]; // selected extras, each adds to price
 }
 
 export interface User {
@@ -31,6 +43,8 @@ export interface User {
   name: string;
   email: string;
   phone?: string;
+  profileImage?: string;
+  token?: string; // JWT token for API calls (present when using real backend auth)
 }
 
 export interface SavedAddress {

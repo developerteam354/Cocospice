@@ -1,10 +1,11 @@
 export interface ICategory {
-  _id:         string;
-  name:        string;
-  description: string;
-  isListed:    boolean;
-  createdAt:   string;
-  updatedAt:   string;
+  _id:          string;
+  name:         string;
+  description:  string;
+  categoryImage: string;
+  isListed:     boolean;
+  createdAt:    string;
+  updatedAt:    string;
 }
 
 export interface ICreateCategoryPayload {

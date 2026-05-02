@@ -19,7 +19,7 @@ import toast, { Toaster } from 'react-hot-toast';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store/store';
-import { fetchOrders } from '@/store/slices/orderSlice';
+import { fetchOrderById, updateOrderStatus } from '@/store/slices/orderSlice';
 import type { IOrder, OrderStatus } from '@/types/order';
 import Badge from '@/components/ui/Badge';
 
@@ -29,27 +29,20 @@ export default function OrderDetailsPage() {
   const dispatch = useAppDispatch();
   const orderId = params.id as string;
 
-  const { orders, loading } = useAppSelector((state: RootState) => state.orders);
-  const [order, setOrder] = useState<IOrder | null>(null);
+  const { currentOrder, loading, updating } = useAppSelector((state: RootState) => state.orders);
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>('Pending');
 
-  // Fetch orders if not loaded
+  // Fetch order by ID
   useEffect(() => {
-    if (orders.length === 0) {
-      dispatch(fetchOrders());
-    }
-  }, [dispatch, orders.length]);
+    dispatch(fetchOrderById(orderId));
+  }, [dispatch, orderId]);
 
-  // Find order by ID
+  // Update selected status when order loads
   useEffect(() => {
-    if (orders.length > 0) {
-      const foundOrder = orders.find((o) => o._id === orderId);
-      if (foundOrder) {
-        setOrder(foundOrder);
-        setSelectedStatus(foundOrder.status);
-      }
+    if (currentOrder) {
+      setSelectedStatus(currentOrder.status);
     }
-  }, [orders, orderId]);
+  }, [currentOrder]);
 
   // Format date
   const formatDate = (dateString: string): string => {
@@ -75,9 +68,13 @@ export default function OrderDetailsPage() {
     switch (status) {
       case 'Pending':
         return 'amber';
+      case 'Confirmed':
+        return 'amber';
+      case 'On the Way':
+        return 'amber';
       case 'Delivered':
         return 'green';
-      case 'Failed':
+      case 'Cancelled':
         return 'red';
       default:
         return 'amber';
@@ -85,9 +82,22 @@ export default function OrderDetailsPage() {
   };
 
   // Handle status change
-  const handleStatusChange = (newStatus: OrderStatus) => {
-    setSelectedStatus(newStatus);
-    toast.success(`Status will be updated to ${newStatus} (Backend integration pending)`);
+  const handleStatusChange = async (newStatus: OrderStatus) => {
+    if (!currentOrder) return;
+    
+    try {
+      await dispatch(updateOrderStatus({ orderId: currentOrder._id, status: newStatus })).unwrap();
+      toast.success(`Order status updated to ${newStatus}`);
+      
+      // If order is now delivered, redirect to delivered orders page
+      if (newStatus === 'Delivered') {
+        setTimeout(() => {
+          router.push('/admin/orders/delivered');
+        }, 1500);
+      }
+    } catch (error) {
+      toast.error('Failed to update order status');
+    }
   };
 
   // Handle print
@@ -96,7 +106,7 @@ export default function OrderDetailsPage() {
   };
 
   // Loading state
-  if (loading || !order) {
+  if (loading || !currentOrder) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -129,18 +139,18 @@ export default function OrderDetailsPage() {
         >
           <div className="flex items-center gap-3">
             <button
-              onClick={() => router.push('/admin/orders')}
+              onClick={() => router.push('/admin/orders/new')}
               className="rounded-xl border border-white/10 bg-white/5 p-2 text-slate-400 hover:text-white transition-colors"
             >
               <ArrowLeft size={18} />
             </button>
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-white">Order {order.orderId}</h1>
-                <Badge variant={getBadgeVariant(order.status)}>{order.status}</Badge>
+                <h1 className="text-2xl font-bold text-white">Order {currentOrder.orderId}</h1>
+                <Badge variant={getBadgeVariant(currentOrder.status)}>{currentOrder.status}</Badge>
               </div>
               <p className="text-sm text-slate-400">
-                Placed on {formatDate(order.date)} at {formatTime(order.date)}
+                Placed on {formatDate(currentOrder.date)} at {formatTime(currentOrder.date)}
               </p>
             </div>
           </div>
@@ -174,19 +184,19 @@ export default function OrderDetailsPage() {
             <div className="flex items-center gap-3 mb-3">
               <div className="relative h-12 w-12 overflow-hidden rounded-full border-2 border-white/20">
                 <Image
-                  src={order.user.avatar}
-                  alt={order.user.name}
+                  src={currentOrder.user.avatar}
+                  alt={currentOrder.user.name}
                   fill
                   className="object-cover"
                   sizes="48px"
                 />
               </div>
               <div>
-                <p className="font-semibold text-white">{order.user.name}</p>
-                <p className="text-xs text-slate-400">{order.user.email}</p>
+                <p className="font-semibold text-white">{currentOrder.user.name}</p>
+                <p className="text-xs text-slate-400">{currentOrder.user.email}</p>
               </div>
             </div>
-            <p className="text-sm text-slate-300">{order.user.phone}</p>
+            <p className="text-sm text-slate-300">{currentOrder.user.phone}</p>
           </div>
 
           {/* Payment Info */}
@@ -200,11 +210,11 @@ export default function OrderDetailsPage() {
             <div className="space-y-2">
               <div>
                 <p className="text-xs text-slate-500">Payment Method</p>
-                <p className="text-lg font-semibold text-white">{order.paymentMethod}</p>
+                <p className="text-lg font-semibold text-white">{currentOrder.paymentMethod}</p>
               </div>
               <div>
                 <p className="text-xs text-slate-500">Total Amount</p>
-                <p className="text-2xl font-bold text-emerald-400">${order.price.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-emerald-400">£{currentOrder.price.toFixed(2)}</p>
               </div>
             </div>
           </div>
@@ -220,16 +230,16 @@ export default function OrderDetailsPage() {
             <div className="space-y-2">
               <div>
                 <p className="text-xs text-slate-500">Shipping Address</p>
-                <p className="text-sm text-white">{order.shippingAddress?.street}</p>
+                <p className="text-sm text-white">{currentOrder.shippingAddress?.street}</p>
                 <p className="text-sm text-slate-400">
-                  {order.shippingAddress?.city}, {order.shippingAddress?.state}{' '}
-                  {order.shippingAddress?.zipCode}
+                  {currentOrder.shippingAddress?.city}, {currentOrder.shippingAddress?.state}{' '}
+                  {currentOrder.shippingAddress?.zipCode}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-slate-500">Expected Delivery</p>
                 <p className="text-sm font-semibold text-amber-400">
-                  {order.expectedDelivery ? formatDate(order.expectedDelivery) : 'TBD'}
+                  {currentOrder.expectedDelivery ? formatDate(currentOrder.expectedDelivery) : 'TBD'}
                 </p>
               </div>
             </div>
@@ -254,12 +264,21 @@ export default function OrderDetailsPage() {
                 <select
                   value={selectedStatus}
                   onChange={(e) => handleStatusChange(e.target.value as OrderStatus)}
-                  className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+                  disabled={updating}
+                  className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="Pending">Pending</option>
+                  <option value="Confirmed">Confirmed</option>
+                  <option value="On the Way">On the Way</option>
                   <option value="Delivered">Delivered</option>
-                  <option value="Failed">Failed</option>
+                  <option value="Cancelled">Cancelled</option>
                 </select>
+                {updating && (
+                  <div className="flex items-center gap-2 text-indigo-400">
+                    <Loader2 size={16} className="animate-spin" />
+                    <span className="text-sm">Updating...</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -273,26 +292,41 @@ export default function OrderDetailsPage() {
               </div>
 
               <div className="space-y-3">
-                {order.items?.map((item) => (
+                {currentOrder.items?.map((item) => (
                   <div
                     key={item._id}
                     className="flex items-center gap-4 rounded-xl border border-white/5 bg-white/[0.02] p-4"
                   >
                     <div className="relative h-16 w-16 overflow-hidden rounded-lg border border-white/10 bg-white/5 flex-shrink-0">
-                      <img
-                        src={item.thumbnail}
-                        alt={item.name}
-                        className="h-full w-full object-cover"
-                      />
+                      {item.thumbnail && item.thumbnail !== '/placeholder-product.jpg' ? (
+                        <img
+                          src={item.thumbnail}
+                          alt={item.name}
+                          className="h-full w-full object-cover"
+                          onError={(e) => {
+                            // Fallback to placeholder if image fails to load
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.parentElement!.innerHTML = `
+                              <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
+                                <span class="text-2xl">🍽️</span>
+                              </div>
+                            `;
+                          }}
+                        />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
+                          <span className="text-2xl">🍽️</span>
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-white truncate">{item.name}</p>
                       <p className="text-sm text-slate-400">
-                        ${item.price.toFixed(2)} × {item.quantity}
+                        £{item.price.toFixed(2)} × {item.quantity}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-emerald-400">${item.subtotal.toFixed(2)}</p>
+                      <p className="font-bold text-emerald-400">£{item.subtotal.toFixed(2)}</p>
                     </div>
                   </div>
                 ))}
@@ -300,7 +334,7 @@ export default function OrderDetailsPage() {
                 {/* Total */}
                 <div className="flex items-center justify-between border-t border-white/10 pt-4">
                   <p className="text-lg font-semibold text-white">Total</p>
-                  <p className="text-2xl font-bold text-emerald-400">${order.price.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-emerald-400">£{currentOrder.price.toFixed(2)}</p>
                 </div>
               </div>
             </div>
@@ -314,10 +348,10 @@ export default function OrderDetailsPage() {
               </h3>
 
               <div className="space-y-6">
-                {order.timeline?.map((step, index) => (
+                {currentOrder.timeline?.map((step, index) => (
                   <div key={index} className="relative flex gap-4">
                     {/* Timeline Line */}
-                    {index < (order.timeline?.length ?? 0) - 1 && (
+                    {index < (currentOrder.timeline?.length ?? 0) - 1 && (
                       <div
                         className={`absolute left-[11px] top-8 h-full w-0.5 ${
                           step.completed ? 'bg-emerald-500/30' : 'bg-slate-700'

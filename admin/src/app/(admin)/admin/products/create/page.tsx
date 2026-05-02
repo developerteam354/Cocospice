@@ -10,12 +10,17 @@ import { ArrowLeft, ChefHat, Plus, X } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
 import productService from '@/services/productService';
-import type { IProductCategory } from '@/types/product';
+import type { IProductCategory, IExtraOption } from '@/types/product';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import ImageUpload, { type IUploadedAsset } from '@/components/admin/products/ImageUpload';
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
+
+const extraOptionSchema = z.object({
+  name:  z.string().min(1),
+  price: z.number().min(0).default(0),
+});
 
 const schema = z.object({
   name:            z.string().min(2, 'Name is required'),
@@ -27,7 +32,7 @@ const schema = z.object({
   category:        z.string().min(1, 'Category is required'),
   isVeg:           z.boolean(),
   isAvailable:     z.boolean(),
-  extraOptions:    z.array(z.string()),
+  extraOptions:    z.array(extraOptionSchema),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -41,8 +46,9 @@ export default function CreateProductPage() {
   const [thumbnail, setThumbnail]     = useState<IUploadedAsset[]>([]);
   const [gallery, setGallery]         = useState<IUploadedAsset[]>([]);
 
-  // Refs for extra option input
-  const optionNameRef = useRef<HTMLInputElement>(null);
+  // Refs for extra option inputs
+  const optionNameRef  = useRef<HTMLInputElement>(null);
+  const optionPriceRef = useRef<HTMLInputElement>(null);
 
   const isUploading = thumbnail.some((a) => a.uploading) || gallery.some((a) => a.uploading);
 
@@ -72,20 +78,25 @@ export default function CreateProductPage() {
 
   // ─── Extra Option helpers ────────────────────────────────────────────────────
 
-  const addOption = (currentOptions: string[]) => {
-    const name = optionNameRef.current?.value.trim() ?? '';
+  const addOption = (currentOptions: IExtraOption[]) => {
+    const name  = optionNameRef.current?.value.trim() ?? '';
+    const price = parseFloat(optionPriceRef.current?.value ?? '0') || 0;
     if (!name) return currentOptions;
-    const updated = [...currentOptions, name];
-    if (optionNameRef.current) optionNameRef.current.value = '';
+    const updated = [...currentOptions, { name, price }];
+    if (optionNameRef.current)  optionNameRef.current.value  = '';
+    if (optionPriceRef.current) optionPriceRef.current.value = '';
     optionNameRef.current?.focus();
     return updated;
   };
 
-  const removeOption = (currentOptions: string[], index: number) => {
-    return currentOptions.filter((_, i) => i !== index);
-  };
+  const removeOption = (currentOptions: IExtraOption[], index: number) =>
+    currentOptions.filter((_, i) => i !== index);
 
-  const handleOptionKeyDown = (e: React.KeyboardEvent, currentOptions: string[], onChange: (val: string[]) => void) => {
+  const handleOptionKeyDown = (
+    e: React.KeyboardEvent,
+    currentOptions: IExtraOption[],
+    onChange: (val: IExtraOption[]) => void
+  ) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       onChange(addOption(currentOptions));
@@ -123,8 +134,8 @@ export default function CreateProductPage() {
     );
   };
 
-  const handleThumbnail  = (files: File[]) => uploadFiles(files.slice(0, 1), setThumbnail, 'products/thumbnails');
-  const handleGallery    = (files: File[]) => uploadFiles(files.slice(0, 5 - gallery.length), setGallery, 'products/gallery');
+  const handleThumbnail = (files: File[]) => uploadFiles(files.slice(0, 1), setThumbnail, 'products/thumbnails');
+  const handleGallery   = (files: File[]) => uploadFiles(files.slice(0, 5 - gallery.length), setGallery, 'products/gallery');
 
   const removeThumbnail = async (i: number) => {
     const asset = thumbnail[i];
@@ -160,7 +171,7 @@ export default function CreateProductPage() {
         stock:           parseInt(data.stock ?? '0', 10) || 0,
         isAvailable:     data.isAvailable,
         category:        data.category,
-        extraOptions:    data.extraOptions, // string[]
+        extraOptions:    data.extraOptions,
         thumbnail:       { url: readyThumbnail.url, key: readyThumbnail.key },
         gallery:         gallery.filter((a) => !a.uploading).map(({ url, key }) => ({ url, key })),
       });
@@ -232,7 +243,7 @@ export default function CreateProductPage() {
             <section className="space-y-4">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">Pricing & Stock</h2>
               <div className="grid grid-cols-2 gap-4">
-                <Input label="Price (₹)" type="number" placeholder="299"
+                <Input label="Price (£)" type="number" placeholder="2.99"
                   error={errors.price?.message} {...register('price')} />
                 <Input label="Offer %" type="number" placeholder="0"
                   {...register('offerPercentage')} />
@@ -242,11 +253,11 @@ export default function CreateProductPage() {
               <div className="flex items-center justify-between rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
                 <div>
                   <p className="text-xs text-slate-400">Final Price</p>
-                  <p className="text-2xl font-bold text-emerald-400">₹{finalPrice}</p>
+                  <p className="text-2xl font-bold text-emerald-400">£{finalPrice}</p>
                 </div>
                 {offerNum > 0 && (
                   <div className="text-right">
-                    <p className="text-xs text-slate-500 line-through">₹{priceNum.toFixed(2)}</p>
+                    <p className="text-xs text-slate-500 line-through">£{priceNum.toFixed(2)}</p>
                     <p className="text-sm font-semibold text-emerald-500">{offerNum}% off</p>
                   </div>
                 )}
@@ -255,7 +266,7 @@ export default function CreateProductPage() {
               <Input label="Stock" type="number" placeholder="50" {...register('stock')} />
             </section>
 
-            {/* ── Extra Options (tag-input style) ── */}
+            {/* ── Extra Options ── */}
             <Controller
               name="extraOptions"
               control={control}
@@ -264,18 +275,27 @@ export default function CreateProductPage() {
                   <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
                     Extra Options
                     <span className="ml-2 text-xs font-normal normal-case text-slate-500">
-                      Press Enter or click + to add
+                      Add name + price — press Enter or click +
                     </span>
                   </h2>
 
-                  {/* Input row */}
+                  {/* Two-input row: name + price */}
                   <div className="flex gap-2">
                     <input
                       ref={optionNameRef}
                       type="text"
-                      placeholder="Option name (e.g. Extra Cheese, Extra Mayo)"
+                      placeholder="Option name (e.g. Extra Cheese)"
                       onKeyDown={(e) => handleOptionKeyDown(e, field.value, field.onChange)}
                       className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+                    />
+                    <input
+                      ref={optionPriceRef}
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="£0.00"
+                      onKeyDown={(e) => handleOptionKeyDown(e, field.value, field.onChange)}
+                      className="w-24 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
                     />
                     <button
                       type="button"
@@ -302,7 +322,10 @@ export default function CreateProductPage() {
                             transition={{ duration: 0.15 }}
                             className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 pl-3 pr-2 py-1 text-sm text-indigo-300"
                           >
-                            <span className="font-medium">{option}</span>
+                            <span className="font-medium">{option.name}</span>
+                            {option.price > 0 && (
+                              <span className="text-xs text-indigo-400/70">(+£{option.price.toFixed(2)})</span>
+                            )}
                             <button
                               type="button"
                               onClick={() => field.onChange(removeOption(field.value, i))}
@@ -315,6 +338,12 @@ export default function CreateProductPage() {
                       </motion.div>
                     )}
                   </AnimatePresence>
+
+                  {field.value.length === 0 && (
+                    <p className="text-xs text-slate-500 italic">
+                      No extra options added. Leave empty if not applicable.
+                    </p>
+                  )}
                 </section>
               )}
             />
@@ -325,9 +354,10 @@ export default function CreateProductPage() {
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-slate-300">Category</label>
                 <select {...register('category')}
-                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-indigo-500/60">
-                  <option value="">Select category</option>
-                  {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-indigo-500/60"
+                  style={{ background: '#1e293b', color: '#fff' }}>
+                  <option value="" style={{ background: '#1e293b', color: '#fff' }}>Select category</option>
+                  {categories.map((c) => <option key={c._id} value={c._id} style={{ background: '#1e293b', color: '#fff' }}>{c.name}</option>)}
                 </select>
                 {errors.category && <p className="text-xs text-red-400">{errors.category.message}</p>}
               </div>

@@ -8,6 +8,17 @@ export interface IProductCategory {
   name: string;
 }
 
+export interface IMenuOption {
+  name: string;
+  choices: string[];
+  required: boolean;
+}
+
+export interface IExtraOption {
+  name: string;
+  price: number;
+}
+
 export interface IProduct {
   _id: string;
   name: string;
@@ -24,7 +35,7 @@ export interface IProduct {
   category: IProductCategory;
   ratings: { average: number; count: number };
   soldCount: number;
-  extraOptions: string[];
+  extraOptions: IExtraOption[];
   createdAt: string;
   updatedAt: string;
 }
