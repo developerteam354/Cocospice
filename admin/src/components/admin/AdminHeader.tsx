@@ -27,54 +27,55 @@ export default function AdminHeader({ onMobileMenuOpen }: AdminHeaderProps) {
   const admin       = useAppSelector((s: RootState) => s.auth.admin);
 
   return (
-    <header className="flex h-16 shrink-0 items-center gap-4 border-b border-white/10 bg-slate-900/60 backdrop-blur-xl px-4 lg:px-6">
+    <header className="flex h-[76px] shrink-0 items-center gap-4 border-b border-gray-100 bg-white/80 backdrop-blur-2xl px-5 lg:px-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)] z-10 sticky top-0">
       {/* Mobile hamburger */}
       <button
         onClick={onMobileMenuOpen}
-        className="rounded-xl border border-white/10 bg-white/5 p-2 text-slate-400 hover:text-white transition-colors lg:hidden"
+        className="rounded-[14px] border border-gray-100 bg-white p-2.5 text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all shadow-sm active:scale-95 lg:hidden"
       >
-        <Menu size={18} />
+        <Menu size={20} />
       </button>
 
       {/* Breadcrumbs */}
-      <nav className="flex items-center gap-1 text-sm">
+      <nav className="flex items-center gap-1.5 text-[0.95rem]">
         {breadcrumbs.map(({ label, href, isLast }) => (
-          <span key={href} className="flex items-center gap-1">
+          <span key={href} className="flex items-center gap-1.5">
             {!isLast ? (
               <>
-                <span className="text-slate-500 hover:text-slate-300 transition-colors cursor-pointer">
+                <span className="text-gray-400 font-semibold hover:text-gray-700 transition-colors cursor-pointer tracking-wide">
                   {label}
                 </span>
-                <ChevronRight size={14} className="text-slate-600" />
+                <ChevronRight size={14} className="text-gray-300" />
               </>
             ) : (
-              <span className="font-medium text-white">{label}</span>
+              <span className="font-extrabold text-gray-900 tracking-wide">{label}</span>
             )}
           </span>
         ))}
       </nav>
 
       {/* Right side */}
-      <div className="ml-auto flex items-center gap-3">
-        <button className="relative rounded-xl border border-white/10 bg-white/5 p-2 text-slate-400 hover:text-white transition-colors">
-          <Bell size={18} />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-indigo-500" />
+      <div className="ml-auto flex items-center gap-3 sm:gap-4">
+        {/* Notifications */}
+        <button className="relative rounded-full border border-gray-100 bg-white p-2.5 text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all shadow-sm active:scale-95">
+          <Bell size={20} />
+          <span className="absolute right-[6px] top-[6px] h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-white" />
         </button>
 
-        <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5">
-          <div className="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-600/30 text-xs font-bold text-indigo-300">
+        {/* Profile */}
+        <div className="flex items-center gap-3 rounded-full border border-gray-100 bg-white p-1 pr-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+          <div className="relative flex h-[38px] w-[38px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#10b981] to-[#059669] text-sm font-extrabold text-white border-[2.5px] border-white shadow-sm">
             {admin?.profileImage ? (
               <img
                 src={toProxyUrl(admin.profileImage)}
                 alt={admin.fullName}
                 className="h-full w-full object-cover"
                 onError={(e) => {
-                  // Fallback to initials on error
                   const target = e.currentTarget;
                   target.style.display = 'none';
                   const parent = target.parentElement;
                   if (parent) {
-                    parent.innerHTML = `<span class="text-xs font-bold text-indigo-300">${admin?.fullName?.[0]?.toUpperCase() ?? 'A'}</span>`;
+                    parent.innerHTML = `<span>${admin?.fullName?.[0]?.toUpperCase() ?? 'A'}</span>`;
                   }
                 }}
               />
@@ -82,7 +83,7 @@ export default function AdminHeader({ onMobileMenuOpen }: AdminHeaderProps) {
               <span>{admin?.fullName?.[0]?.toUpperCase() ?? 'A'}</span>
             )}
           </div>
-          <span className="hidden text-sm font-medium text-white sm:block">
+          <span className="hidden text-[0.95rem] font-bold text-gray-800 sm:block">
             {admin?.fullName ?? 'Admin'}
           </span>
         </div>

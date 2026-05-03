@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Pencil, Eye, EyeOff, Trash2, Search } from 'lucide-react';
+import { Plus, Pencil, Eye, EyeOff, Trash2, Search, Tag } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
@@ -23,6 +23,100 @@ const rowVariants = {
   visible:  (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.04, duration: 0.3 } }),
   exit:     { opacity: 0, x: -16, transition: { duration: 0.2 } },
 };
+
+// ─── Category Card Component ──────────────────────────────────────────────────
+
+interface CategoryCardProps {
+  cat: ICategory;
+  index: number;
+  onEdit: (cat: ICategory) => void;
+  onToggle: (cat: ICategory) => void;
+  onDelete: (cat: ICategory) => void;
+}
+
+function CategoryCard({ cat, index, onEdit, onToggle, onDelete }: CategoryCardProps) {
+  return (
+    <motion.div
+      variants={rowVariants}
+      custom={index}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      className="group relative flex flex-col h-full rounded-[32px] border border-gray-100 bg-white p-6 shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.04)] transition-all duration-500 overflow-hidden"
+    >
+      {/* ── Background Accent ── */}
+      <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-emerald-50/40 blur-2xl group-hover:bg-emerald-100/50 transition-all duration-500" />
+      
+      <div className="relative z-10 flex flex-col h-full">
+        {/* Header: Image + Status */}
+        <div className="flex items-start justify-between mb-5">
+          <div className="relative h-16 w-16 rounded-2xl bg-gray-50 border border-gray-100 overflow-hidden shadow-sm group-hover:shadow-md transition-shadow">
+            {cat.categoryImage ? (
+              <img 
+                src={cat.categoryImage} 
+                alt={cat.name} 
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-2xl">🏷️</div>';
+                }}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-emerald-50 text-emerald-600">
+                <Tag size={28} strokeWidth={2} />
+              </div>
+            )}
+          </div>
+          <Badge variant={cat.isListed ? 'green' : 'slate'}>
+            {cat.isListed ? 'Active' : 'Hidden'}
+          </Badge>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 space-y-2">
+          <h3 className="text-[1.3rem] font-black text-gray-900 tracking-tight group-hover:text-emerald-700 transition-colors">
+            {cat.name}
+          </h3>
+          <p className="text-[0.9rem] font-medium text-gray-500 line-clamp-2 leading-relaxed">
+            {cat.description || 'No description provided for this category.'}
+          </p>
+        </div>
+
+        {/* Footer: Actions */}
+        <div className="mt-6 flex items-center gap-2 pt-5 border-t border-gray-50">
+          <button 
+            onClick={() => onEdit(cat)}
+            className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-gray-50 px-4 py-3 text-[0.85rem] font-black text-gray-600 hover:bg-emerald-50 hover:text-emerald-600 transition-all active:scale-95 border border-transparent hover:border-emerald-100"
+          >
+            <Pencil size={16} strokeWidth={2.5} />
+            Edit
+          </button>
+          
+          <div className="flex gap-1.5">
+            <button 
+              onClick={() => onToggle(cat)}
+              title={cat.isListed ? 'Hide Category' : 'List Category'}
+              className={`rounded-2xl p-3 border transition-all active:scale-95 shadow-sm ${
+                cat.isListed 
+                  ? 'border-gray-100 bg-white text-gray-400 hover:bg-gray-100 hover:text-gray-900' 
+                  : 'border-emerald-100 bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+              }`}
+            >
+              {cat.isListed ? <EyeOff size={18} strokeWidth={2.5} /> : <Eye size={18} strokeWidth={2.5} />}
+            </button>
+            <button 
+              onClick={() => handleDelete(cat)}
+              title="Delete Category"
+              className="rounded-2xl p-3 border border-gray-100 bg-white text-gray-400 hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all active:scale-95 shadow-sm"
+            >
+              <Trash2 size={18} strokeWidth={2.5} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 export default function CategoryPage() {
   const dispatch = useAppDispatch();
@@ -82,7 +176,6 @@ export default function CategoryPage() {
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to save category';
       toast.error(errorMessage, { id: tid });
-      // Don't rethrow - let modal stay open so user can fix the error
     }
   };
 
@@ -109,7 +202,7 @@ export default function CategoryPage() {
   return (
     <>
       <Toaster position="top-right" toastOptions={{
-        style: { background: 'rgba(15,23,42,0.95)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' },
+        style: { background: '#ffffff', color: '#111827', border: '1px solid #f3f4f6', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' },
       }} />
 
       <CategoryModal
@@ -119,107 +212,93 @@ export default function CategoryPage() {
         initial={editing}
       />
 
-      <div className="space-y-5">
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-white">Categories</h1>
-            <p className="text-sm text-slate-400">
-              {search ? `${filtered.length} of ${categories.length}` : `${categories.length} total`}
-            </p>
-          </div>
-          <Button onClick={openCreate}>
-            <Plus size={16} /> Add Category
-          </Button>
-        </motion.div>
+      <div className="space-y-8">
+        {/* Header Area */}
+        <div className="flex flex-col gap-6">
+          <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-[2.2rem] font-black text-gray-900 tracking-tighter">Category Manager</h1>
+              <p className="text-[0.95rem] font-medium text-gray-500 mt-1">
+                Manage how your menu items are grouped and displayed
+              </p>
+            </div>
+            <Button onClick={openCreate} className="h-14 px-8 rounded-2xl shadow-lg shadow-emerald-500/20">
+              <Plus size={20} strokeWidth={3} />
+              <span>New Category</span>
+            </Button>
+          </motion.div>
 
-        {/* Search */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }}
-          className="relative max-w-sm">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search categories..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-white/5 py-2 pl-9 pr-4 text-sm text-white placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-          />
-        </motion.div>
+          {/* Search & Stats Bar */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.1 }}
+            className="flex flex-col md:flex-row items-center gap-4 bg-white p-3 rounded-[28px] border border-gray-100 shadow-sm"
+          >
+            <div className="relative flex-1 w-full">
+              <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Find a category..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full h-14 rounded-[22px] border-none bg-gray-50 pl-14 pr-6 text-[1rem] font-bold text-gray-900 placeholder:text-gray-400 outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all"
+              />
+            </div>
+            <div className="hidden md:flex items-center gap-6 px-6 border-l border-gray-100">
+               <div className="text-center">
+                  <p className="text-[1.1rem] font-black text-gray-900">{categories.length}</p>
+                  <p className="text-[0.65rem] font-black uppercase tracking-widest text-gray-400">Total</p>
+               </div>
+               <div className="text-center">
+                  <p className="text-[1.1rem] font-black text-emerald-600">{categories.filter(c => c.isListed).length}</p>
+                  <p className="text-[0.65rem] font-black uppercase tracking-widest text-gray-400">Active</p>
+               </div>
+            </div>
+          </motion.div>
+        </div>
 
-        {/* Table */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.02]">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-slate-500">
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3 hidden md:table-cell">Description</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                Array.from({ length: 4 }).map((_, i) => (
-                  <tr key={i} className="border-b border-white/5">
-                    {Array.from({ length: 4 }).map((_, j) => (
-                      <td key={j} className="px-4 py-3">
-                        <div className="h-8 animate-pulse rounded-lg bg-white/5" />
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : categories.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="py-16 text-center text-slate-500">
-                    No categories yet. Click "Add Category" to create one.
-                  </td>
-                </tr>
-              ) : (
-                <AnimatePresence>
-                  {filtered.map((cat, i) => (
-                    <motion.tr key={cat._id} custom={i}
-                      variants={rowVariants} initial="hidden" animate="visible" exit="exit"
-                      className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-                      {/* Name */}
-                      <td className="px-4 py-3 font-medium text-white">{cat.name}</td>
-                      {/* Description */}
-                      <td className="hidden px-4 py-3 text-slate-400 md:table-cell max-w-xs truncate">
-                        {cat.description || '—'}
-                      </td>
-                      {/* Status */}
-                      <td className="px-4 py-3">
-                        <Badge variant={cat.isListed ? 'green' : 'slate'}>
-                          {cat.isListed ? 'Listed' : 'Unlisted'}
-                        </Badge>
-                      </td>
-                      {/* Actions */}
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-end gap-1">
-                          <button onClick={() => openEdit(cat)} title="Edit"
-                            className="rounded-lg p-2 text-slate-400 hover:bg-indigo-500/20 hover:text-indigo-400 transition-colors">
-                            <Pencil size={15} />
-                          </button>
-                          <button onClick={() => handleToggle(cat)}
-                            title={cat.isListed ? 'Unlist' : 'List'}
-                            className="rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-white transition-colors">
-                            {cat.isListed ? <EyeOff size={15} /> : <Eye size={15} />}
-                          </button>
-                          <button onClick={() => handleDelete(cat)} title="Delete"
-                            className="rounded-lg p-2 text-slate-400 hover:bg-red-500/20 hover:text-red-400 transition-colors">
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </AnimatePresence>
+        {/* Content Area */}
+        <div className="min-h-[400px]">
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-64 animate-pulse rounded-[32px] bg-gray-50 border border-gray-100" />
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-32 rounded-[40px] border-2 border-dashed border-gray-100 bg-gray-50/30">
+              <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm">
+                <Tag size={40} className="text-gray-200" />
+              </div>
+              <h3 className="text-[1.2rem] font-black text-gray-900">No categories found</h3>
+              <p className="text-gray-500 font-medium mt-1">
+                {search ? 'Try a different search term' : 'Start by adding your first menu category'}
+              </p>
+              {!search && (
+                <Button onClick={openCreate} variant="ghost" className="mt-6">
+                  Create Category
+                </Button>
               )}
-            </tbody>
-          </table>
-        </motion.div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <AnimatePresence mode="popLayout">
+                {filtered.map((cat, i) => (
+                  <CategoryCard 
+                    key={cat._id} 
+                    cat={cat} 
+                    index={i} 
+                    onEdit={openEdit}
+                    onToggle={handleToggle}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

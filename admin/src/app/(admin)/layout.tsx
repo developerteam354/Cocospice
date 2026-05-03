@@ -32,10 +32,10 @@ export default function AdminGroupLayout({ children }: { children: React.ReactNo
   // Show spinner while auth is being verified
   if (!isInitialized) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
+      <div className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 size={32} className="animate-spin text-indigo-400" />
-          <p className="text-sm text-slate-400">Verifying session...</p>
+          <Loader2 size={32} className="animate-spin text-[#10b981]" />
+          <p className="text-sm font-medium text-gray-500">Verifying session...</p>
         </div>
       </div>
     );
@@ -44,7 +44,7 @@ export default function AdminGroupLayout({ children }: { children: React.ReactNo
   if (!isAuthenticated) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950/20 to-slate-900">
+    <div className="flex h-screen overflow-hidden bg-gray-50 text-gray-900 font-sans">
       <AdminSidebar
         collapsed={collapsed}
         mobileOpen={mobileOpen}
@@ -53,14 +53,14 @@ export default function AdminGroupLayout({ children }: { children: React.ReactNo
       />
 
       {/* Main area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden bg-gray-50">
         <AdminHeader onMobileMenuOpen={() => setMobileOpen(true)} />
 
         {/* Scrollable content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          <div className="mx-auto max-w-7xl">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-8">
+          <div className="mx-auto max-w-[1400px]">
             {/* Content card */}
-            <div className="min-h-[70vh] rounded-3xl border border-white/10 bg-white/[0.03] p-4 shadow-2xl shadow-black/20 backdrop-blur-sm lg:p-6">
+            <div className="min-h-[75vh] rounded-[32px] border border-white bg-white/90 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.04)] backdrop-blur-xl lg:p-8">
               {children}
             </div>
           </div>
