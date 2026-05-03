@@ -7,7 +7,7 @@ interface StoreShape {
   dispatch: (action: unknown) => Promise<unknown>;
 }
 
-const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/user`;
+const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/user`;
 
 // ─── Public Instance ──────────────────────────────────────────────────────────
 // Unauthenticated: login, refresh, register
