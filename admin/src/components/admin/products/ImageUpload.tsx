@@ -34,16 +34,16 @@ export default function ImageUpload({
   const canAdd = assets.length < maxFiles;
 
   return (
-    <div className="flex flex-col gap-2">
-      <label className="text-sm font-medium text-slate-300">{label}</label>
+    <div className="flex flex-col gap-3">
+      <label className="text-[0.9rem] font-black text-gray-900 tracking-tight">{label}</label>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-4">
         {assets.map((asset, i) => (
-          <div key={i} className="relative h-24 w-24 overflow-hidden rounded-xl border border-white/10 bg-white/5">
+          <div key={i} className="relative h-24 w-24 overflow-hidden rounded-[20px] border border-gray-100 bg-gray-50 shadow-sm">
             {asset.uploading ? (
               // Loading spinner while uploading
               <div className="flex h-full w-full items-center justify-center">
-                <Loader2 size={20} className="animate-spin text-indigo-400" />
+                <Loader2 size={24} className="animate-spin text-emerald-500" />
               </div>
             ) : (
               <>
@@ -56,9 +56,9 @@ export default function ImageUpload({
                 <button
                   type="button"
                   onClick={() => onRemove(i)}
-                  className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white hover:bg-red-500/80 transition-colors"
+                  className="absolute right-1.5 top-1.5 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
                 >
-                  <X size={12} />
+                  <X size={12} strokeWidth={3} />
                 </button>
               </>
             )}
@@ -69,10 +69,10 @@ export default function ImageUpload({
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-white/20 bg-white/5 text-slate-400 hover:border-indigo-500/50 hover:text-indigo-400 transition-colors"
+            className="flex h-24 w-24 flex-col items-center justify-center gap-2 rounded-[20px] border-2 border-dashed border-gray-200 bg-gray-50/50 text-gray-400 hover:border-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all active:scale-95"
           >
-            <Upload size={18} />
-            <span className="text-xs">Upload</span>
+            <Upload size={24} strokeWidth={2.5} />
+            <span className="text-[0.75rem] font-black uppercase tracking-wider">Upload</span>
           </button>
         )}
       </div>
@@ -86,7 +86,7 @@ export default function ImageUpload({
         onChange={handleChange}
       />
 
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      {error && <p className="text-[0.8rem] font-bold text-red-500 mt-1">{error}</p>}
     </div>
   );
 }

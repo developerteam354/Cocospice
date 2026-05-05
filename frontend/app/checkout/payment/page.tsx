@@ -19,7 +19,7 @@ export default function PaymentPage() {
   const { user } = useAuth();
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
-  
+
   const [payment, setPayment] = useState<PaymentMethod>('card');
   const [placing, setPlacing] = useState(false);
 
@@ -103,7 +103,7 @@ export default function PaymentPage() {
         onPaymentChange={setPayment}
         codCharge={codCharge}
       />
-      
+
       <footer className={styles.footer}>
         <button
           className={`${styles.ctaBtn} ${styles.ctaBtnGold}`}

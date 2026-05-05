@@ -31,13 +31,13 @@ const containerVariants: Variants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' as const, staggerChildren: 0.08 },
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1], staggerChildren: 0.08 },
   },
 };
 
 const itemVariants: Variants = {
   hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' as const } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -78,33 +78,34 @@ export default function LoginForm() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="w-full max-w-md"
+      className="w-full"
     >
       {/* Card */}
-      <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-8 shadow-2xl shadow-black/40">
+      <div className="rounded-[32px] border border-white bg-white/70 backdrop-blur-xl p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)]">
 
         {/* Header */}
-        <motion.div variants={itemVariants} className="mb-8 flex flex-col items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-600/20 border border-indigo-500/30">
-            <ShieldCheck size={28} className="text-indigo-400" />
+        <motion.div variants={itemVariants} className="mb-10 flex flex-col items-center gap-4">
+          <div className="flex h-16 w-16 items-center justify-center rounded-[20px] bg-emerald-50 border border-emerald-100 shadow-sm">
+            <ShieldCheck size={32} className="text-emerald-600" strokeWidth={2.5} />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-white">Admin Portal</h1>
-            <p className="mt-1 text-sm text-slate-400">Sign in to your dashboard</p>
+            <h1 className="text-[1.8rem] font-black text-gray-900 tracking-tight leading-tight">Admin Portal</h1>
+            <p className="mt-2 text-[0.95rem] font-medium text-gray-500">Sign in to manage your restaurant</p>
           </div>
         </motion.div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
           <motion.div variants={itemVariants}>
             <Input
               label="Email Address"
               type="email"
               placeholder="admin@cocospice.com"
               autoComplete="email"
-              leftIcon={<Mail size={16} />}
+              leftIcon={<Mail size={20} className="text-gray-400" />}
               error={errors.email?.message}
               {...register('email')}
+              className="rounded-2xl"
             />
           </motion.div>
 
@@ -114,31 +115,36 @@ export default function LoginForm() {
               type={showPassword ? 'text' : 'password'}
               placeholder="••••••••"
               autoComplete="current-password"
-              leftIcon={<Lock size={16} />}
+              leftIcon={<Lock size={20} className="text-gray-400" />}
               rightIcon={
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="cursor-pointer hover:text-white transition-colors"
+                  className="cursor-pointer text-gray-400 hover:text-gray-900 transition-colors mr-1"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               }
               error={errors.password?.message}
               {...register('password')}
+              className="rounded-2xl"
             />
           </motion.div>
 
-          <motion.div variants={itemVariants} className="pt-1">
-            <Button type="submit" loading={loading} className="w-full">
-              Sign In
+          <motion.div variants={itemVariants} className="pt-2">
+            <Button 
+              type="submit" 
+              loading={loading} 
+              className="w-full py-4 text-[1rem] font-black shadow-[0_10px_25px_rgba(16,185,129,0.25)] hover:shadow-[0_12px_30px_rgba(16,185,129,0.35)]"
+            >
+              Sign In to Dashboard
             </Button>
           </motion.div>
         </form>
       </div>
 
-      <motion.p variants={itemVariants} className="mt-6 text-center text-xs text-slate-600">
+      <motion.p variants={itemVariants} className="mt-8 text-center text-[0.85rem] font-bold text-gray-400">
         Cocospice Admin Panel &copy; {new Date().getFullYear()}
       </motion.p>
     </motion.div>

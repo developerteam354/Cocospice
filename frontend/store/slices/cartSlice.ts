@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import type { CartItem, MenuItem, ExtraOption } from '../../types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api`;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -29,7 +29,7 @@ export const fetchCartFromServer = createAsyncThunk(
       if (!res.ok) throw new Error('Failed to fetch cart');
       const data = await res.json();
       return {
-        items:     (data.cart      ?? []) as CartItem[],
+        items: (data.cart ?? []) as CartItem[],
         orderType: (data.orderType ?? 'delivery') as 'delivery' | 'collection',
         orderNote: (data.orderNote ?? '') as string,
       };
@@ -148,7 +148,7 @@ const cartSlice = createSlice({
     builder
       // When server cart loads, replace local state (server is source of truth for logged-in users)
       .addCase(fetchCartFromServer.fulfilled, (state, action) => {
-        state.items     = action.payload.items;
+        state.items = action.payload.items;
         state.orderType = action.payload.orderType;
         state.orderNote = action.payload.orderNote;
       })

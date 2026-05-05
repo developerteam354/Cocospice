@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
   User,
@@ -14,6 +14,11 @@ import {
   CheckCircle2,
   Circle,
   Loader2,
+  ChevronRight,
+  Phone,
+  Mail,
+  Clock,
+  Truck
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -47,7 +52,7 @@ export default function OrderDetailsPage() {
   // Format date
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('en-GB', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
@@ -57,27 +62,20 @@ export default function OrderDetailsPage() {
   // Format time
   const formatTime = (dateString: string): string => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
+    return date.toLocaleTimeString('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
     });
   };
 
-  // Get badge variant
-  const getBadgeVariant = (status: OrderStatus): 'amber' | 'green' | 'red' => {
-    switch (status) {
-      case 'Pending':
-        return 'amber';
-      case 'Confirmed':
-        return 'amber';
-      case 'On the Way':
-        return 'amber';
-      case 'Delivered':
-        return 'green';
-      case 'Cancelled':
-        return 'red';
-      default:
-        return 'amber';
+  const safeBadgeVariant = (status: OrderStatus) => {
+    switch(status) {
+      case 'Pending': return 'amber';
+      case 'Confirmed': return 'slate';
+      case 'On the Way': return 'orange';
+      case 'Delivered': return 'green';
+      case 'Cancelled': return 'red';
+      default: return 'slate';
     }
   };
 
@@ -86,313 +84,232 @@ export default function OrderDetailsPage() {
     if (!currentOrder) return;
     
     try {
+      const toastId = toast.loading('Updating order status...');
       await dispatch(updateOrderStatus({ orderId: currentOrder._id, status: newStatus })).unwrap();
-      toast.success(`Order status updated to ${newStatus}`);
+      toast.success(`Status updated to ${newStatus}`, { id: toastId });
       
-      // If order is now delivered, redirect to delivered orders page
       if (newStatus === 'Delivered') {
         setTimeout(() => {
           router.push('/admin/orders/delivered');
         }, 1500);
       }
     } catch (error) {
-      toast.error('Failed to update order status');
+      toast.error('Failed to update status');
     }
   };
 
-  // Handle print
   const handlePrint = () => {
-    toast.success('Print functionality will be implemented with backend');
+    toast.success('Generating invoice...');
   };
 
-  // Loading state
   if (loading || !currentOrder) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <Loader2 size={48} className="mx-auto mb-4 animate-spin text-indigo-400" />
-          <p className="text-lg text-slate-400">Loading order details...</p>
-        </div>
+      <div className="flex min-h-[60vh] flex-col items-center justify-center">
+        <Loader2 size={40} className="animate-spin text-emerald-500 mb-4" />
+        <p className="text-gray-500 font-bold">Loading order details...</p>
       </div>
     );
   }
 
   return (
     <>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          style: {
-            background: 'rgba(15,23,42,0.95)',
-            color: '#fff',
-            border: '1px solid rgba(255,255,255,0.1)',
-          },
-        }}
-      />
+      <Toaster position="top-right" />
 
-      <div className="space-y-6">
+      <div className="space-y-8 pb-20">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-        >
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
             <button
-              onClick={() => router.push('/admin/orders/new')}
-              className="rounded-xl border border-white/10 bg-white/5 p-2 text-slate-400 hover:text-white transition-colors"
+              onClick={() => router.back()}
+              className="h-12 w-12 flex items-center justify-center rounded-2xl border border-gray-100 bg-white text-gray-400 hover:text-gray-900 transition-all active:scale-95"
             >
-              <ArrowLeft size={18} />
+              <ArrowLeft size={20} strokeWidth={2.5} />
             </button>
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-white">Order {currentOrder.orderId}</h1>
-                <Badge variant={getBadgeVariant(currentOrder.status)}>{currentOrder.status}</Badge>
+                <h1 className="text-[1.8rem] font-black text-gray-900 tracking-tight">Order #{currentOrder.orderId}</h1>
+                <Badge variant={safeBadgeVariant(currentOrder.status)}>{currentOrder.status}</Badge>
               </div>
-              <p className="text-sm text-slate-400">
+              <p className="text-[0.9rem] font-medium text-gray-500 mt-0.5">
                 Placed on {formatDate(currentOrder.date)} at {formatTime(currentOrder.date)}
               </p>
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-2 rounded-xl border border-indigo-500/40 bg-indigo-500/10 px-4 py-2 text-sm font-medium text-indigo-400 hover:bg-indigo-500/20 transition-colors"
-            >
-              <Printer size={16} />
-              Print Invoice
-            </button>
-          </div>
-        </motion.div>
+          <button
+            onClick={handlePrint}
+            className="flex items-center justify-center gap-2 rounded-2xl border border-gray-100 bg-white px-6 py-3.5 text-[0.9rem] font-black text-gray-600 hover:bg-gray-50 transition-all active:scale-95 shadow-sm"
+          >
+            <Printer size={18} strokeWidth={2.5} />
+            Print Invoice
+          </button>
+        </div>
 
-        {/* Quick Stats Row */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 gap-4 md:grid-cols-3"
-        >
-          {/* Customer Info */}
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 backdrop-blur-sm">
-            <div className="mb-4 flex items-center gap-2">
-              <User size={18} className="text-indigo-400" />
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
-                Customer Info
-              </h3>
+        {/* Info Grid */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {/* Customer */}
+          <div className="rounded-[32px] border border-gray-100 bg-white p-8 shadow-sm">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <User size={20} strokeWidth={2.5} />
+              </div>
+              <h3 className="text-[0.8rem] font-black uppercase tracking-widest text-gray-400">Customer</h3>
             </div>
-            <div className="flex items-center gap-3 mb-3">
-              <div className="relative h-12 w-12 overflow-hidden rounded-full border-2 border-white/20">
-                <Image
-                  src={currentOrder.user.avatar}
-                  alt={currentOrder.user.name}
-                  fill
-                  className="object-cover"
-                  sizes="48px"
-                />
+            <div className="flex items-center gap-4">
+              <div className="relative h-14 w-14 rounded-2xl overflow-hidden border border-gray-100">
+                <Image src={currentOrder.user.avatar} alt={currentOrder.user.name} fill className="object-cover" />
               </div>
               <div>
-                <p className="font-semibold text-white">{currentOrder.user.name}</p>
-                <p className="text-xs text-slate-400">{currentOrder.user.email}</p>
+                <p className="text-[1.1rem] font-black text-gray-900 leading-tight">{currentOrder.user.name}</p>
+                <p className="text-[0.85rem] font-bold text-gray-400 mt-0.5">{currentOrder.user.email}</p>
               </div>
             </div>
-            <p className="text-sm text-slate-300">{currentOrder.user.phone}</p>
+            <div className="mt-6 pt-6 border-t border-gray-50 space-y-3">
+               <div className="flex items-center gap-3 text-[0.9rem] font-bold text-gray-600">
+                  <Phone size={16} className="text-gray-400" />
+                  {currentOrder.user.phone}
+               </div>
+            </div>
           </div>
 
-          {/* Payment Info */}
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 backdrop-blur-sm">
-            <div className="mb-4 flex items-center gap-2">
-              <CreditCard size={18} className="text-indigo-400" />
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
-                Payment Info
-              </h3>
-            </div>
-            <div className="space-y-2">
-              <div>
-                <p className="text-xs text-slate-500">Payment Method</p>
-                <p className="text-lg font-semibold text-white">{currentOrder.paymentMethod}</p>
+          {/* Payment */}
+          <div className="rounded-[32px] border border-gray-100 bg-white p-8 shadow-sm">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <CreditCard size={20} strokeWidth={2.5} />
               </div>
+              <h3 className="text-[0.8rem] font-black uppercase tracking-widest text-gray-400">Payment</h3>
+            </div>
+            <div className="space-y-4">
               <div>
-                <p className="text-xs text-slate-500">Total Amount</p>
-                <p className="text-2xl font-bold text-emerald-400">£{currentOrder.price.toFixed(2)}</p>
+                <p className="text-[0.75rem] font-black text-gray-400 uppercase tracking-widest mb-1">Method</p>
+                <p className="text-[1rem] font-black text-gray-900">{currentOrder.paymentMethod}</p>
+              </div>
+              <div className="pt-4 border-t border-gray-50">
+                <p className="text-[0.75rem] font-black text-gray-400 uppercase tracking-widest mb-1">Total Amount</p>
+                <p className="text-[1.8rem] font-black text-emerald-600 tracking-tight">₹{currentOrder.price.toLocaleString()}</p>
               </div>
             </div>
           </div>
 
-          {/* Delivery Info */}
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 backdrop-blur-sm">
-            <div className="mb-4 flex items-center gap-2">
-              <MapPin size={18} className="text-indigo-400" />
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
-                Delivery Info
-              </h3>
+          {/* Shipping */}
+          <div className="rounded-[32px] border border-gray-100 bg-white p-8 shadow-sm">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-10 w-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
+                <MapPin size={20} strokeWidth={2.5} />
+              </div>
+              <h3 className="text-[0.8rem] font-black uppercase tracking-widest text-gray-400">Shipping</h3>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-4">
               <div>
-                <p className="text-xs text-slate-500">Shipping Address</p>
-                <p className="text-sm text-white">{currentOrder.shippingAddress?.street}</p>
-                <p className="text-sm text-slate-400">
-                  {currentOrder.shippingAddress?.city}, {currentOrder.shippingAddress?.state}{' '}
-                  {currentOrder.shippingAddress?.zipCode}
+                <p className="text-[0.75rem] font-black text-gray-400 uppercase tracking-widest mb-1">Address</p>
+                <p className="text-[0.95rem] font-black text-gray-900 leading-snug">{currentOrder.shippingAddress?.street}</p>
+                <p className="text-[0.85rem] font-bold text-gray-400 mt-1">
+                  {currentOrder.shippingAddress?.city}, {currentOrder.shippingAddress?.zipCode}
                 </p>
               </div>
-              <div>
-                <p className="text-xs text-slate-500">Expected Delivery</p>
-                <p className="text-sm font-semibold text-amber-400">
-                  {currentOrder.expectedDelivery ? formatDate(currentOrder.expectedDelivery) : 'TBD'}
-                </p>
-              </div>
+              {currentOrder.expectedDelivery && (
+                <div className="pt-4 border-t border-gray-50 flex items-center gap-2">
+                   <Clock size={16} className="text-orange-500" />
+                   <p className="text-[0.9rem] font-black text-gray-600">Expected by {formatTime(currentOrder.expectedDelivery)}</p>
+                </div>
+              )}
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Main Content Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 gap-6 lg:grid-cols-3"
-        >
-          {/* Product List */}
-          <div className="lg:col-span-2 space-y-4">
-            {/* Status Management */}
-            <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 backdrop-blur-sm">
-              <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-400">
-                Change Order Status
-              </h3>
-              <div className="flex gap-2">
-                <select
-                  value={selectedStatus}
-                  onChange={(e) => handleStatusChange(e.target.value as OrderStatus)}
-                  disabled={updating}
-                  className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="Pending">Pending</option>
-                  <option value="Confirmed">Confirmed</option>
-                  <option value="On the Way">On the Way</option>
-                  <option value="Delivered">Delivered</option>
-                  <option value="Cancelled">Cancelled</option>
-                </select>
-                {updating && (
-                  <div className="flex items-center gap-2 text-indigo-400">
-                    <Loader2 size={16} className="animate-spin" />
-                    <span className="text-sm">Updating...</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Items List */}
-            <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 backdrop-blur-sm">
-              <div className="mb-4 flex items-center gap-2">
-                <Package size={18} className="text-indigo-400" />
-                <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
-                  Order Items
-                </h3>
-              </div>
-
-              <div className="space-y-3">
-                {currentOrder.items?.map((item) => (
-                  <div
-                    key={item._id}
-                    className="flex items-center gap-4 rounded-xl border border-white/5 bg-white/[0.02] p-4"
+        {/* Action and Items */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-6">
+            {/* Status Update */}
+            <div className="rounded-[32px] border border-gray-100 bg-white p-8 shadow-sm">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div>
+                   <h3 className="text-[0.8rem] font-black uppercase tracking-widest text-gray-400">Order Status</h3>
+                   <p className="text-[1.1rem] font-black text-gray-900 mt-1">Update current fulfillment stage</p>
+                </div>
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <select
+                    value={selectedStatus}
+                    onChange={(e) => handleStatusChange(e.target.value as OrderStatus)}
+                    disabled={updating}
+                    className="flex-1 sm:w-64 h-12 rounded-xl border border-gray-200 bg-gray-50 px-4 text-[0.95rem] font-bold text-gray-900 outline-none focus:bg-white focus:border-emerald-500 transition-all cursor-pointer"
                   >
-                    <div className="relative h-16 w-16 overflow-hidden rounded-lg border border-white/10 bg-white/5 flex-shrink-0">
-                      {item.thumbnail && item.thumbnail !== '/placeholder-product.jpg' ? (
-                        <img
-                          src={item.thumbnail}
-                          alt={item.name}
-                          className="h-full w-full object-cover"
-                          onError={(e) => {
-                            // Fallback to placeholder if image fails to load
-                            e.currentTarget.style.display = 'none';
-                            e.currentTarget.parentElement!.innerHTML = `
-                              <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
-                                <span class="text-2xl">🍽️</span>
-                              </div>
-                            `;
-                          }}
-                        />
+                    <option value="Pending">Pending</option>
+                    <option value="Confirmed">Confirmed</option>
+                    <option value="On the Way">On the Way</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                  {updating && <Loader2 size={24} className="animate-spin text-emerald-500" />}
+                </div>
+              </div>
+            </div>
+
+            {/* Items */}
+            <div className="rounded-[32px] border border-gray-100 bg-white p-8 shadow-sm">
+              <div className="flex items-center gap-3 mb-8">
+                 <div className="h-10 w-10 rounded-xl bg-gray-50 text-gray-400 flex items-center justify-center">
+                   <Package size={20} strokeWidth={2.5} />
+                 </div>
+                 <h3 className="text-[0.8rem] font-black uppercase tracking-widest text-gray-400">Order Items</h3>
+              </div>
+
+              <div className="space-y-4">
+                {currentOrder.items?.map((item) => (
+                  <div key={item._id} className="flex items-center gap-5 p-4 rounded-2xl border border-gray-50 bg-gray-50/30">
+                    <div className="relative h-16 w-16 rounded-xl overflow-hidden border border-gray-100 bg-white">
+                      {item.thumbnail ? (
+                        <img src={item.thumbnail} alt={item.name} className="h-full w-full object-cover" />
                       ) : (
-                        <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-indigo-500/20 to-purple-500/20">
-                          <span className="text-2xl">🍽️</span>
-                        </div>
+                        <div className="h-full w-full flex items-center justify-center bg-gray-50">🍽️</div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-white truncate">{item.name}</p>
-                      <p className="text-sm text-slate-400">
-                        £{item.price.toFixed(2)} × {item.quantity}
-                      </p>
+                      <p className="text-[1rem] font-black text-gray-900 truncate">{item.name}</p>
+                      <p className="text-[0.85rem] font-bold text-gray-400 mt-0.5">₹{item.price.toFixed(2)} × {item.quantity}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-emerald-400">£{item.subtotal.toFixed(2)}</p>
+                      <p className="text-[1.1rem] font-black text-gray-900">₹{item.subtotal.toLocaleString()}</p>
                     </div>
                   </div>
                 ))}
 
-                {/* Total */}
-                <div className="flex items-center justify-between border-t border-white/10 pt-4">
-                  <p className="text-lg font-semibold text-white">Total</p>
-                  <p className="text-2xl font-bold text-emerald-400">£{currentOrder.price.toFixed(2)}</p>
+                <div className="mt-8 pt-8 border-t border-gray-100 flex items-center justify-between">
+                   <p className="text-[1.1rem] font-black text-gray-900">Total Amount</p>
+                   <p className="text-[2rem] font-black text-emerald-600 tracking-tight">₹{currentOrder.price.toLocaleString()}</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Order Timeline */}
-          <div className="lg:col-span-1">
-            <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-6 backdrop-blur-sm">
-              <h3 className="mb-6 text-sm font-semibold uppercase tracking-wider text-slate-400">
-                Order Timeline
-              </h3>
-
-              <div className="space-y-6">
-                {currentOrder.timeline?.map((step, index) => (
-                  <div key={index} className="relative flex gap-4">
-                    {/* Timeline Line */}
-                    {index < (currentOrder.timeline?.length ?? 0) - 1 && (
-                      <div
-                        className={`absolute left-[11px] top-8 h-full w-0.5 ${
-                          step.completed ? 'bg-emerald-500/30' : 'bg-slate-700'
-                        }`}
-                      />
+          {/* Timeline */}
+          <div className="rounded-[32px] border border-gray-100 bg-white p-8 shadow-sm h-fit">
+            <h3 className="text-[0.8rem] font-black uppercase tracking-widest text-gray-400 mb-8">History</h3>
+            <div className="space-y-8 relative">
+              <div className="absolute left-[13px] top-4 bottom-4 w-0.5 bg-gray-50 rounded-full" />
+              {currentOrder.timeline?.map((step, i) => (
+                <div key={i} className="relative flex gap-4">
+                  <div className="relative z-10 mt-1">
+                    {step.completed ? (
+                      <div className="h-7 w-7 rounded-full bg-emerald-500 flex items-center justify-center text-white border-4 border-white shadow-sm">
+                        <CheckCircle2 size={14} strokeWidth={3} />
+                      </div>
+                    ) : (
+                      <div className="h-7 w-7 rounded-full bg-white border-2 border-gray-200" />
                     )}
-
-                    {/* Icon */}
-                    <div className="relative z-10 flex-shrink-0">
-                      {step.completed ? (
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/20 border-2 border-emerald-500">
-                          <CheckCircle2 size={14} className="text-emerald-400" />
-                        </div>
-                      ) : (
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-700 border-2 border-slate-600">
-                          <Circle size={10} className="text-slate-500" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 pb-2">
-                      <p
-                        className={`font-semibold ${
-                          step.completed ? 'text-white' : 'text-slate-500'
-                        }`}
-                      >
-                        {step.status}
-                      </p>
-                      {step.timestamp && (
-                        <p className="text-xs text-slate-400">
-                          {formatDate(step.timestamp)} at {formatTime(step.timestamp)}
-                        </p>
-                      )}
-                    </div>
                   </div>
-                ))}
-              </div>
+                  <div>
+                    <p className={`text-[1rem] font-black ${step.completed ? 'text-gray-900' : 'text-gray-300'}`}>{step.status}</p>
+                    {step.timestamp && (
+                      <p className="text-[0.75rem] font-bold text-gray-400 mt-0.5">{formatDate(step.timestamp)} • {formatTime(step.timestamp)}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </>
   );

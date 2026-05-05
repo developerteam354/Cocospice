@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Search, Eye, CheckCircle, XCircle, Truck } from 'lucide-react';
+import { Clock, Search, Eye, CheckCircle, XCircle, Truck, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { RootState } from '@/store/store';
@@ -67,11 +67,7 @@ export default function NewOrdersPage() {
     try {
       await dispatch(updateOrderStatus({ orderId, status })).unwrap();
       toast.success(`Order status updated to ${status}`);
-      
-      // Refresh stats
       dispatch(fetchOrderStats());
-      
-      // If delivered, refresh the list
       if (status === 'Delivered') {
         dispatch(fetchNewOrders());
       }
@@ -86,236 +82,247 @@ export default function NewOrdersPage() {
     return date.toLocaleDateString('en-GB', {
       day: 'numeric',
       month: 'short',
-      year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     });
   };
 
-  // Get badge variant
-  const getBadgeVariant = (status: OrderStatus): 'amber' | 'blue' | 'purple' | 'green' | 'red' => {
-    switch (status) {
-      case 'Pending':
-        return 'amber';
-      case 'Confirmed':
-        return 'blue';
-      case 'On the Way':
-        return 'purple';
-      case 'Delivered':
-        return 'green';
-      case 'Cancelled':
-        return 'red';
-      default:
-        return 'amber';
+  const safeBadgeVariant = (status: OrderStatus) => {
+    switch(status) {
+      case 'Pending': return 'amber';
+      case 'Confirmed': return 'slate';
+      case 'On the Way': return 'orange';
+      case 'Delivered': return 'green';
+      case 'Cancelled': return 'red';
+      default: return 'slate';
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-8">
+      {/* ── Page Header ── */}
       <motion.div
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-6"
       >
         <div>
-          <h1 className="text-2xl font-bold text-white">New Orders</h1>
-          <p className="text-sm text-slate-400">
-            {filteredOrders.length} active order{filteredOrders.length !== 1 ? 's' : ''}
+          <h1 className="text-[2.2rem] font-black text-gray-900 tracking-tighter leading-tight">Incoming Orders</h1>
+          <p className="text-[0.95rem] font-medium text-gray-500 mt-1">
+            Real-time management of your restaurant's active transactions
           </p>
         </div>
         <button
           onClick={() => router.push('/admin/orders/delivered')}
-          className="rounded-xl bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+          className="group flex items-center justify-center gap-2 rounded-2xl bg-white border border-gray-100 px-6 py-4 text-[0.9rem] font-black text-gray-600 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-100 transition-all shadow-sm active:scale-95"
         >
-          View Delivered Orders
+          <Package size={20} strokeWidth={2.5} className="text-gray-400 group-hover:text-emerald-500 transition-colors" />
+          Archive & Delivered
         </button>
       </motion.div>
 
-      {/* Filters */}
+      {/* ── Stat Overview ── */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
-        className="flex flex-col gap-3 sm:flex-row sm:items-center"
+         initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+         className="grid grid-cols-2 lg:grid-cols-4 gap-6"
       >
-        {/* Search */}
-        <div className="relative flex-1">
-          <Search
-            size={15}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-          />
+         {[
+           { label: 'Active', value: newOrders.length, color: 'bg-amber-500', iconColor: 'text-white', icon: Clock },
+           { label: 'Pending', value: newOrders.filter(o => o.status === 'Pending').length, color: 'bg-red-500', iconColor: 'text-white', icon: Package },
+           { label: 'Revenue', value: `₹${newOrders.reduce((acc, o) => acc + o.price, 0).toFixed(0)}`, color: 'bg-emerald-500', iconColor: 'text-white', icon: CheckCircle },
+           { label: 'Capacity', value: '84%', color: 'bg-blue-600', iconColor: 'text-white', icon: Truck },
+         ].map((stat, i) => (
+           <div key={i} className="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm transition-all hover:shadow-md">
+             <div className="flex items-center gap-5">
+                <div className={`h-14 w-14 rounded-2xl flex items-center justify-center ${stat.color} ${stat.iconColor} shadow-lg shadow-${stat.color.split('-')[1]}-500/20`}>
+                   <stat.icon size={24} strokeWidth={2.5} />
+                </div>
+                <div>
+                   <p className="text-[1.8rem] font-black text-gray-900 leading-none">{stat.value}</p>
+                   <p className="text-[0.7rem] font-black uppercase tracking-widest text-gray-400 mt-1.5">{stat.label}</p>
+                </div>
+             </div>
+           </div>
+         ))}
+      </motion.div>
+
+      {/* ── Toolbar ── */}
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
+        className="flex flex-col md:flex-row items-center gap-4 bg-white p-3 rounded-[28px] border border-gray-100 shadow-sm"
+      >
+        <div className="relative flex-1 w-full">
+          <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Search by name, email, or order ID..."
+            placeholder="Search by order ID, customer name or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-white/5 py-2 pl-9 pr-4 text-sm text-white placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+            className="w-full h-14 rounded-[22px] border-none bg-gray-50 pl-14 pr-6 text-[0.95rem] font-bold text-gray-900 placeholder:text-gray-400 outline-none focus:bg-white focus:ring-2 focus:ring-emerald-500/10 transition-all"
           />
         </div>
 
-        {/* Status Filter */}
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as OrderStatus | 'All')}
-          className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-        >
-          <option value="All">All Status</option>
-          <option value="Pending">Pending</option>
-          <option value="Confirmed">Confirmed</option>
-          <option value="On the Way">On the Way</option>
-        </select>
+        <div className="flex bg-gray-100/50 p-1.5 rounded-[22px] gap-1 shrink-0 overflow-x-auto max-w-full">
+          {(['All', 'Pending', 'Confirmed', 'On the Way'] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => setStatusFilter(f)}
+              className={`rounded-[18px] px-6 py-3 text-[0.8rem] font-black uppercase tracking-wider whitespace-nowrap transition-all ${
+                statusFilter === f
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
       </motion.div>
 
-      {/* Orders Table */}
+      {/* ── Orders Table ── */}
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
-        className="overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.02]"
+        initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+        className="overflow-hidden rounded-[32px] border border-gray-100 bg-white shadow-sm"
       >
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-white/5 text-left text-xs uppercase tracking-wider text-slate-500">
-              <th className="px-4 py-3">Order ID</th>
-              <th className="px-4 py-3">Customer</th>
-              <th className="px-4 py-3 hidden md:table-cell">Date</th>
-              <th className="px-4 py-3">Total</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              // Loading skeleton
-              Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i} className="border-b border-white/5">
-                  {Array.from({ length: 6 }).map((_, j) => (
-                    <td key={j} className="px-4 py-3">
-                      <div className="h-8 animate-pulse rounded-lg bg-white/5" />
-                    </td>
-                  ))}
-                </tr>
-              ))
-            ) : filteredOrders.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="py-16 text-center text-slate-500">
-                  {search || statusFilter !== 'All'
-                    ? 'No orders match your filters'
-                    : 'No new orders'}
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-gray-50 bg-gray-50/30">
+                <th className="px-8 py-5 text-[0.7rem] font-black uppercase tracking-widest text-gray-400">Order Context</th>
+                <th className="px-6 py-5 text-[0.7rem] font-black uppercase tracking-widest text-gray-400">Customer Details</th>
+                <th className="px-6 py-5 text-[0.7rem] font-black uppercase tracking-widest text-gray-400 hidden lg:table-cell">Temporal</th>
+                <th className="px-6 py-5 text-[0.7rem] font-black uppercase tracking-widest text-gray-400">Transaction</th>
+                <th className="px-6 py-5 text-[0.7rem] font-black uppercase tracking-widest text-gray-400">Status</th>
+                <th className="px-8 py-5 text-[0.7rem] font-black uppercase tracking-widest text-gray-400 text-right">Fulfillment</th>
               </tr>
-            ) : (
-              <AnimatePresence>
-                {filteredOrders.map((order, i) => (
-                  <motion.tr
-                    key={order._id}
-                    custom={i}
-                    variants={rowVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    className="border-b border-white/5 hover:bg-white/[0.02] transition-colors"
-                  >
-                    {/* Order ID */}
-                    <td className="px-4 py-3">
-                      <span className="font-mono text-xs text-indigo-400">
-                        {order.orderId}
-                      </span>
-                    </td>
-
-                    {/* Customer */}
-                    <td className="px-4 py-3">
-                      <div className="min-w-0">
-                        <p className="truncate font-medium text-white">
-                          {order.user.name}
-                        </p>
-                        <p className="truncate text-xs text-slate-400">
-                          {order.user.email}
-                        </p>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {loading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <tr key={i}><td colSpan={6} className="px-8 py-5"><div className="h-16 animate-pulse rounded-2xl bg-gray-50" /></td></tr>
+                ))
+              ) : filteredOrders.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-24 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="w-20 h-20 bg-gray-50 rounded-[24px] flex items-center justify-center mb-5 border border-gray-100">
+                        <Package size={40} className="text-gray-200" />
                       </div>
-                    </td>
+                      <p className="text-[1.1rem] font-black text-gray-900">No active orders found</p>
+                      <p className="text-[0.9rem] font-medium text-gray-500 mt-1">Ready and waiting for new business</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                <AnimatePresence mode="popLayout">
+                  {filteredOrders.map((order, i) => (
+                    <motion.tr
+                      key={order._id} custom={i} variants={rowVariants} initial="hidden" animate="visible" exit="exit"
+                      className="group hover:bg-gray-50/50 transition-colors"
+                    >
+                      {/* Order Context */}
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-4">
+                          <div className="h-12 w-12 rounded-[14px] bg-gray-50 border border-gray-100 flex items-center justify-center shadow-sm group-hover:bg-white transition-colors">
+                            <Clock size={20} className="text-gray-400" />
+                          </div>
+                          <div>
+                            <span className="font-mono text-[0.75rem] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">
+                              #{order.orderId}
+                            </span>
+                            <p className="text-[0.65rem] font-bold text-gray-400 mt-1 uppercase tracking-wider">Reference ID</p>
+                          </div>
+                        </div>
+                      </td>
 
-                    {/* Date */}
-                    <td className="hidden px-4 py-3 text-slate-400 md:table-cell">
-                      {formatDate(order.date)}
-                    </td>
+                      {/* Customer Details */}
+                      <td className="px-6 py-5">
+                        <div className="min-w-0">
+                          <p className="font-black text-gray-900 leading-tight truncate">{order.user.name}</p>
+                          <p className="text-[0.85rem] font-bold text-gray-400 truncate mt-1">{order.user.email}</p>
+                        </div>
+                      </td>
 
-                    {/* Total */}
-                    <td className="px-4 py-3 font-semibold text-emerald-400">
-                      £{order.price.toFixed(2)}
-                    </td>
+                      {/* Temporal */}
+                      <td className="hidden px-6 py-5 lg:table-cell">
+                        <p className="text-[0.9rem] font-bold text-gray-500">{formatDate(order.date)}</p>
+                        <p className="text-[0.65rem] font-black text-gray-300 uppercase mt-1 tracking-tighter">Order Timestamp</p>
+                      </td>
 
-                    {/* Status */}
-                    <td className="px-4 py-3">
-                      <Badge variant={getBadgeVariant(order.status)}>
-                        {order.status}
-                      </Badge>
-                    </td>
+                      {/* Transaction */}
+                      <td className="px-6 py-5">
+                        <p className="text-[1.1rem] font-black text-gray-900">₹{order.price.toFixed(2)}</p>
+                        <p className="text-[0.65rem] font-bold text-emerald-600/70 uppercase tracking-widest mt-1">Total Paid</p>
+                      </td>
 
-                    {/* Actions */}
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-2">
-                        {/* View Details */}
-                        <button
-                          onClick={() => router.push(`/admin/orders/${order._id}`)}
-                          title="View Details"
-                          className="rounded-lg p-2 text-slate-400 hover:bg-indigo-500/20 hover:text-indigo-400 transition-colors"
-                        >
-                          <Eye size={16} />
-                        </button>
+                      {/* Status */}
+                      <td className="px-6 py-5">
+                        <Badge variant={safeBadgeVariant(order.status)}>
+                          {order.status}
+                        </Badge>
+                      </td>
 
-                        {/* Quick Actions based on status */}
-                        {order.status === 'Pending' && (
-                          <>
-                            <button
-                              onClick={() => handleStatusUpdate(order._id, 'Confirmed')}
-                              disabled={updating}
-                              title="Confirm Order"
-                              className="rounded-lg p-2 text-slate-400 hover:bg-emerald-500/20 hover:text-emerald-400 transition-colors disabled:opacity-50"
-                            >
-                              <CheckCircle size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleStatusUpdate(order._id, 'Cancelled')}
-                              disabled={updating}
-                              title="Cancel Order"
-                              className="rounded-lg p-2 text-slate-400 hover:bg-red-500/20 hover:text-red-400 transition-colors disabled:opacity-50"
-                            >
-                              <XCircle size={16} />
-                            </button>
-                          </>
-                        )}
-
-                        {order.status === 'Confirmed' && (
+                      {/* Fulfillment Operations */}
+                      <td className="px-8 py-5">
+                        <div className="flex items-center justify-end gap-2.5">
+                          {/* View Detail */}
                           <button
-                            onClick={() => handleStatusUpdate(order._id, 'On the Way')}
-                            disabled={updating}
-                            title="Mark as On the Way"
-                            className="rounded-lg p-2 text-slate-400 hover:bg-purple-500/20 hover:text-purple-400 transition-colors disabled:opacity-50"
+                            onClick={() => router.push(`/admin/orders/${order._id}`)}
+                            className="rounded-[14px] p-3 text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-all active:scale-95 border border-gray-100/50 shadow-sm"
                           >
-                            <Truck size={16} />
+                            <Eye size={18} strokeWidth={2.5} />
                           </button>
-                        )}
 
-                        {order.status === 'On the Way' && (
-                          <button
-                            onClick={() => handleStatusUpdate(order._id, 'Delivered')}
-                            disabled={updating}
-                            title="Mark as Delivered"
-                            className="rounded-lg p-2 text-slate-400 hover:bg-emerald-500/20 hover:text-emerald-400 transition-colors disabled:opacity-50"
-                          >
-                            <CheckCircle size={16} />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
-              </AnimatePresence>
-            )}
-          </tbody>
-        </table>
+                          {/* Dynamic Workflow Controls */}
+                          {order.status === 'Pending' && (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleStatusUpdate(order._id, 'Confirmed')}
+                                disabled={updating}
+                                className="rounded-[14px] p-3 bg-emerald-500 text-white hover:bg-emerald-600 transition-all active:scale-95 shadow-sm shadow-emerald-500/20"
+                              >
+                                <CheckCircle size={18} strokeWidth={2.5} />
+                              </button>
+                              <button
+                                onClick={() => handleStatusUpdate(order._id, 'Cancelled')}
+                                disabled={updating}
+                                className="rounded-[14px] p-3 bg-white text-red-400 border border-gray-100 hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all active:scale-95 shadow-sm"
+                              >
+                                <XCircle size={18} strokeWidth={2.5} />
+                              </button>
+                            </div>
+                          )}
+
+                          {order.status === 'Confirmed' && (
+                            <button
+                              onClick={() => handleStatusUpdate(order._id, 'On the Way')}
+                              disabled={updating}
+                              className="flex items-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 text-[0.8rem] font-black text-white hover:bg-emerald-600 transition-all active:scale-95 shadow-md shadow-emerald-500/20"
+                            >
+                              <Truck size={18} strokeWidth={2.5} />
+                              <span>Dispatch</span>
+                            </button>
+                          )}
+
+                          {order.status === 'On the Way' && (
+                            <button
+                              onClick={() => handleStatusUpdate(order._id, 'Delivered')}
+                              disabled={updating}
+                              className="flex items-center gap-2 rounded-2xl bg-white border border-gray-100 px-5 py-3 text-[0.8rem] font-black text-emerald-600 hover:bg-emerald-50 hover:border-emerald-100 transition-all active:scale-95 shadow-sm"
+                            >
+                              <CheckCircle size={18} strokeWidth={2.5} />
+                              <span>Complete</span>
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
+              )}
+            </tbody>
+          </table>
+        </div>
       </motion.div>
     </div>
   );

@@ -38,30 +38,35 @@ export default function ProductFillingManager({ filling, onChange }: ProductFill
     }
   };
 
+  const inputBaseClass = 
+    'rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-[0.95rem] font-bold text-gray-900 placeholder:text-gray-400 outline-none focus:bg-white focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all shadow-sm';
+
   return (
-    <section className="space-y-3">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
-        Product Filling
-        <span className="ml-2 text-xs font-normal normal-case text-slate-500">
-          (e.g., Veg, Chicken, Beef) - Press Enter or click + to add
-        </span>
-      </h2>
+    <section className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-[1rem] font-black text-gray-900 tracking-tight">
+          Product Filling
+          <span className="ml-2 text-[0.8rem] font-bold text-gray-400 normal-case">
+            (e.g., Veg, Chicken, Beef)
+          </span>
+        </h2>
+      </div>
 
       {/* Input row */}
-      <div className="flex gap-2">
+      <div className="flex gap-3 bg-white p-3 rounded-[24px] border border-gray-100 shadow-sm">
         <input
           ref={inputRef}
           type="text"
-          placeholder="Filling type (e.g., Veg, Chicken)"
+          placeholder="Type filling (e.g., Chicken) and press Enter"
           onKeyDown={handleKeyDown}
-          className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+          className={`${inputBaseClass} flex-1`}
         />
         <button
           type="button"
           onClick={addFilling}
-          className="flex items-center justify-center rounded-xl border border-indigo-500/40 bg-indigo-500/10 px-4 text-indigo-400 hover:bg-indigo-500/20 active:scale-95 transition-all"
+          className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100 transition-all active:scale-95 shadow-sm"
         >
-          <Plus size={16} />
+          <Plus size={24} strokeWidth={2.5} />
         </button>
       </div>
 
@@ -72,7 +77,7 @@ export default function ProductFillingManager({ filling, onChange }: ProductFill
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="flex flex-wrap gap-2"
+            className="flex flex-wrap gap-2.5 pt-1"
           >
             {filling.map((item, i) => (
               <motion.span
@@ -81,15 +86,15 @@ export default function ProductFillingManager({ filling, onChange }: ProductFill
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 transition={{ duration: 0.15 }}
-                className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 pl-3 pr-2 py-1 text-sm text-emerald-300"
+                className="inline-flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/30 pl-4 pr-2 py-2 text-[0.9rem] font-bold text-emerald-700"
               >
-                <span className="font-medium">{item}</span>
+                {item}
                 <button
                   type="button"
                   onClick={() => removeFilling(i)}
-                  className="ml-0.5 rounded-full p-0.5 text-emerald-400 hover:bg-red-500/20 hover:text-red-400 transition-colors"
+                  className="h-7 w-7 flex items-center justify-center rounded-lg bg-emerald-100/50 text-emerald-600 hover:bg-red-50 hover:text-red-600 transition-all"
                 >
-                  <X size={12} />
+                  <X size={14} strokeWidth={3} />
                 </button>
               </motion.span>
             ))}
@@ -98,9 +103,11 @@ export default function ProductFillingManager({ filling, onChange }: ProductFill
       </AnimatePresence>
 
       {filling.length === 0 && (
-        <p className="text-xs text-slate-500 italic">
-          No filling options added. If this product doesn't require filling selection, leave it empty.
-        </p>
+        <div className="text-center py-8 rounded-[24px] border-2 border-dashed border-gray-100 bg-gray-50/50">
+          <p className="text-[0.85rem] font-bold text-gray-400 italic">
+            No filling options added. Leave empty if not applicable.
+          </p>
+        </div>
       )}
     </section>
   );
